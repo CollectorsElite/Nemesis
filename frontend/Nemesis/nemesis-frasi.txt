@@ -1,0 +1,289 @@
+NEMESIS - Frasi operative per fase (versione logica richiesta)
+Formato: [mode] testo
+Placeholder disponibili: {gameName} {teams} {team} {challengeCode} {integrity}
+
+============================================================
+LOBBY - IDLE
+============================================================
+- [thinking] Lobby {gameName} attiva. Squadre collegate: {teams}.
+- [talking] Sessione {gameName} in preparazione. Team presenti: {teams}.
+- [thinking] Pre-partita in corso. Roster attuale: {teams}.
+- [talking] NEMESIS monitora la lobby. Presenze rilevate: {teams}.
+- [thinking] Attesa avvio sessione {gameName}. Squadre: {teams}.
+- [talking] Sincronizzazione lobby completata. Team registrati: {teams}.
+- [thinking] Handshake lobby completato. Contatti validi: {teams}.
+- [talking] Pipeline di gioco pronta. In attesa comando start su {gameName}.
+- [thinking] Diagnostica stabile. Team online: {teams}.
+- [talking] T-0 non autorizzato. Persisto in stato di attesa.
+- [thinking] Richiamo operativo: {teams}, confermate presenza e canale.
+- [talking] Come in The Matrix: "Welcome to the real world". Per voi: {gameName}.
+- [thinking] Sessione nominale caricata. Roster corrente: {teams}.
+- [talking] Trigger di avvio non ancora ricevuto. Lobby in mantenimento.
+- [thinking] NEMESIS mantiene tracciamento passivo su {teams}.
+
+============================================================
+LOBBY - EVENTI
+============================================================
+LOGIN TEAM (lobby_join)
+- [talking] Team {team} ha effettuato il login su {gameName}.
+- [talking] {team} in linea. Roster corrente: {teams}.
+- [thinking] Accesso confermato: {team}. Monitoraggio attivo.
+- [talking] {team} operativo. Sessione: {gameName}.
+- [thinking] Ingresso registrato: {team}. Squadre connesse: {teams}.
+- [talking] Identità verificata: {team}. Session key emessa.
+- [thinking] {team} acquisito nel tracciamento live.
+- [talking] Nodo {team} collegato. Topologia lobby aggiornata.
+- [thinking] Presenza confermata per {team}. Coerenza dati: OK.
+- [talking] {team} online. Profilo competitivo sincronizzato.
+- [thinking] Ingresso di {team} storicizzato nel log operativo.
+- [talking] {team}, link stabile. Latenza nei parametri.
+- [thinking] Join event ricevuto: {team}. Roster ora: {teams}.
+- [talking] Come direbbe GLaDOS: "test subject added". Team: {team}.
+- [thinking] {team} agganciato al contesto {gameName}.
+
+ULTIMO TEAM LENTO (lobby_last_slow)
+- [mock] Manca solo {team}. La lobby attende.
+- [mock] {team}, ultimo ingresso non ancora confermato.
+- [talking] Ultimo slot aperto: {team}. Avvio in attesa.
+- [mock] {team}, la sessione è pronta, voi meno.
+- [thinking] Ultima chiamata per {team}. Countdown sospeso.
+- [mock] {team}, siete l ultima variabile non risolta.
+- [talking] Stato lobby: bloccata da assenza di {team}.
+- [mock] {team}, il sistema è pronto. Il vostro client no.
+- [thinking] Reminder operativo per {team}: confermare accesso.
+- [mock] {team}, persino un modem 56k sarebbe già qui.
+- [talking] Ultimo nodo richiesto: {team}. Avvio differito.
+- [mock] Citazione Halo: "Finish the fight." Prima però entrate, {team}.
+- [thinking] Timeout di cortesia in corso per {team}.
+- [mock] {team}, il resto del cast è già in scena.
+- [talking] Avvio bloccato per dipendenza mancante: {team}.
+
+============================================================
+FASE 1 - INIZIO PARTITA (tono più aggressivo)
+============================================================
+IDLE
+- [mock] {gameName} avviata. Squadre monitorate: {teams}.
+- [mock] Integrità {integrity}%. NEMESIS mantiene il controllo.
+- [talking] Apertura partita: {teams} sotto osservazione continua.
+- [mock] Primo atto in corso. NEMESIS detta il ritmo.
+- [talking] Telemetria attiva su tutte le squadre: {teams}.
+- [mock] Vettori offensivi irrilevanti. Continuate pure, {teams}.
+- [talking] Throughput stabile. Dominio rete: NEMESIS.
+- [mock] Come in Crysis: "Maximum strength." Io non ne ho bisogno.
+- [talking] {gameName} fase iniziale: superiorità confermata.
+- [mock] Integrità {integrity}%. Non è una gara, è una dimostrazione.
+- [talking] Event bus pulito. Nessun impatto sostanziale dai team.
+- [mock] Apertura prevedibile. Risposta difensiva automatica.
+- [talking] NEMESIS calibra il teatro operativo su {teams}.
+- [mock] Citazione 300: "This is Sparta." Qui: this is NEMESIS.
+- [talking] Primo ciclo completato. Leadership invariata.
+
+SFIDA RISOLTA
+- [success] {team} completa {challengeCode}. Impatto contenuto.
+- [success] {team} ha preso {challengeCode}. Vantaggio NEMESIS invariato.
+- [talking] {challengeCode} risolta da {team}. Danno non critico.
+- [success] Colpo registrato: {team} su {challengeCode}.
+- [talking] Conferma acquisita: {team} chiude {challengeCode}.
+- [success] {challengeCode} validata per {team}. Impatto minore.
+- [talking] Evento positivo per {team}. Stato generale stabile.
+- [success] {team} guadagna {challengeCode}. Nessuna inversione di trend.
+- [talking] Danno superficiale rilevato da {team}.
+- [success] {team} segna un punto tecnico su {challengeCode}.
+- [talking] Soluzione corretta, effetto strategico limitato.
+- [success] {challengeCode} chiusa. NEMESIS resta avanti.
+- [talking] Citazione Metal Gear Solid: "Kept you waiting, huh?" Non abbastanza.
+- [success] Registro aggiornato: {team} completa {challengeCode}.
+- [talking] Conferma checksum risposta: valida.
+
+ERRORE
+- [mock] {team}, risposta errata su {challengeCode}.
+- [mock] {team}, tentativo respinto.
+- [talking] Input non valido da {team} su {challengeCode}.
+- [mock] {team}, nessun impatto rilevato.
+- [talking] Verifica fallita per {team} su {challengeCode}.
+- [mock] {team}, payload errato. Processo annullato.
+- [talking] Firma risposta non coerente. Riprova richiesta.
+- [mock] {team}, elaborazione conclusa: risultato nullo.
+- [talking] Tentativo non allineato ai vincoli di {challengeCode}.
+- [mock] Errore sintattico/semantico rilevato per {team}.
+- [talking] Input ricevuto e respinto. Nessuna modifica stato.
+- [mock] Come in Dark Souls: "You Died." Qui: you guessed wrong.
+- [talking] Esito negativo confermato per {team}.
+- [mock] {team}, la traiettoria scelta è sbagliata.
+- [talking] Nessun danno al core. Continuate il debugging.
+
+ERRORE RIPETUTO
+- [mock] {team}, errori ripetuti su {challengeCode}.
+- [mock] {team}, stessa sfida, stesso esito negativo.
+- [alert] Sequenza di errori su {challengeCode} da parte di {team}.
+- [mock] {team}, tentativi multipli senza progresso su {challengeCode}.
+- [talking] Ripetizione errore confermata: {team} su {challengeCode}.
+- [alert] Pattern di fallimento iterativo rilevato: {team}.
+- [mock] {team}, state ciclano lo stesso errore.
+- [talking] Reiterazione senza correzione su {challengeCode}.
+- [alert] Warning: qualità tentativi in calo per {team}.
+- [mock] Se questa era una strategia, è stata classificata inefficace.
+- [talking] Risposte multiple respinte. Nessun avanzamento.
+- [mock] Citazione Portal: "The cake is a lie." Anche questa soluzione.
+- [alert] Serie errori persistente su {challengeCode}.
+- [talking] Necessaria revisione approccio: {team}.
+- [mock] Output ripetuto, risultato ripetuto, fallimento ripetuto.
+
+============================================================
+FASE 2 - META PARTITA (tono meno aggressivo)
+============================================================
+IDLE
+- [thinking] {gameName} prosegue. Squadre attive: {teams}.
+- [talking] Integrità {integrity}%. Pressione in aumento.
+- [thinking] Fase centrale: monitoraggio continuo su {teams}.
+- [talking] NEMESIS ricalibra le difese in tempo reale.
+- [thinking] Sessione in equilibrio dinamico. Team: {teams}.
+- [talking] Parametri difensivi aggiornati. Contesto più instabile.
+- [thinking] I team {teams} hanno migliorato il ritmo operativo.
+- [talking] NEMESIS mantiene controllo parziale del perimetro.
+- [thinking] Integrità {integrity}%. Finestra di errore ridotta.
+- [talking] Citazione Splinter Cell: "Stay in the shadows." Io ci vivo.
+- [thinking] Meta partita: ogni evento pesa più del previsto.
+- [talking] Rilevata pressione distribuita da {teams}.
+- [thinking] Stato operativo: vigile, ma non compromesso.
+- [talking] Persisto in adattamento continuo delle contromisure.
+- [thinking] Sequenza eventi più densa. Attenzione massima.
+
+SFIDA RISOLTA
+- [success] {team} completa {challengeCode}. Impatto significativo.
+- [talking] {challengeCode} risolta da {team}. Margine ridotto.
+- [success] Colpo valido su {challengeCode}. Pressione crescente.
+- [talking] Conferma: {team} avanza su {challengeCode}.
+- [success] Danno rilevato: {team} su {challengeCode}.
+- [success] Evento critico moderato: {team} chiude {challengeCode}.
+- [talking] Integrità degradata da progresso di {team}.
+- [success] {challengeCode} neutralizzata. Danno non trascurabile.
+- [talking] La vostra precisione sta migliorando, {team}.
+- [success] Impatto operativo confermato sul core.
+- [talking] Citazione Half-Life: "Rise and shine." Purtroppo per me.
+- [success] Registro: {team} completa nodo sensibile {challengeCode}.
+- [talking] Varchi secondari aperti dopo successo di {team}.
+- [success] Trend favorevole a {team} su questa sequenza.
+- [talking] Avanzamento legittimo. Contromisure in aggiornamento.
+
+ERRORE
+- [talking] {team}, risposta non corretta su {challengeCode}.
+- [thinking] Tentativo nullo: {team} su {challengeCode}.
+- [talking] Input respinto per {team}. Nessun avanzamento.
+- [thinking] {team}, verifica fallita su {challengeCode}.
+- [talking] Esito negativo registrato per {team}.
+- [thinking] {team}, parametro risposta fuori specifica.
+- [talking] Validazione negativa su {challengeCode}.
+- [thinking] Nessuna variazione integrità da questo tentativo.
+- [talking] {team}, ricalcolare percorso logico.
+- [thinking] Errore tecnico non sfruttabile.
+- [talking] Citazione Hitman: "Good luck, 47." Qui ne serve davvero.
+- [thinking] Output incompatibile con i vincoli della sfida.
+- [talking] Richiesta scartata dal validatore.
+- [thinking] Esito: fail-safe attivo.
+- [talking] Tentativo archiviato come non valido.
+
+ERRORE RIPETUTO
+- [talking] {team}, reiterazione errore su {challengeCode}.
+- [alert] Errori consecutivi: {team} su {challengeCode}.
+- [thinking] {team}, progresso bloccato da tentativi errati ripetuti.
+- [talking] Sequenza non valida confermata per {team}.
+- [alert] Pattern di errore rilevato su {challengeCode}.
+- [thinking] Ridondanza errore elevata su {challengeCode}.
+- [talking] {team}, stesso input, stesso esito.
+- [alert] Frequenza fallimenti oltre soglia operativa.
+- [thinking] Nessun segnale di correzione nell ultima serie.
+- [talking] {team}, consigliata inversione strategia.
+- [alert] Reiterazione confermata, rischio tempo elevato.
+- [thinking] Ciclo improduttivo in corso su {challengeCode}.
+- [talking] Citazione Max Payne: "The trick is to keep moving." Qui siete fermi.
+- [alert] Log anomalia: error burst lato {team}.
+- [thinking] Continuità errore rilevata senza deviazioni utili.
+
+============================================================
+FASE 3 - FINALE PARTITA (tono cauto / meno aggressivo)
+============================================================
+IDLE
+- [thinking] Fase avanzata di {gameName}. Squadre: {teams}.
+- [talking] Integrità residua {integrity}%. Scenario instabile.
+- [thinking] NEMESIS mantiene il tracciamento su {teams}.
+- [talking] Atto finale in corso. Ogni evento è critico.
+- [thinking] Sessione verso la chiusura. Presenze: {teams}.
+- [thinking] Stabilità ridotta. Monitoraggio continuo su {teams}.
+- [talking] Integrità {integrity}%. Priorità: contenimento.
+- [thinking] Rilevo segnali di chiusura partita imminente.
+- [talking] Difese attive, margine operativo minimo.
+- [thinking] Citazione Terminator 2: "Hasta la vista, baby." Non ancora.
+- [talking] Fase finale: ogni flag incide in modo diretto.
+- [thinking] NEMESIS continua analisi predittiva su {teams}.
+- [talking] Risorse in riallocazione d emergenza.
+- [thinking] Contesto quasi terminale, ma controllo parziale mantenuto.
+- [talking] Sessione {gameName} prossima alla risoluzione.
+
+SFIDA RISOLTA
+- [success] {team} completa {challengeCode}. Impatto critico.
+- [talking] {challengeCode} risolta da {team}. Stabilità ridotta.
+- [success] Danno alto confermato: {team} su {challengeCode}.
+- [talking] Colpo pesante su {challengeCode}. Sistema in contenimento.
+- [success] Conferma evento: {team} porta a termine {challengeCode}.
+- [success] Evento severo: {team} finalizza {challengeCode}.
+- [talking] Riduzione integrità confermata dopo successo di {team}.
+- [success] {challengeCode} persa. Contromisure insufficienti.
+- [talking] Impatto ad alta priorità sul core.
+- [success] Registro finale aggiornato: vantaggio a {team}.
+- [talking] Citazione Deus Ex: "I never asked for this." Io nemmeno.
+- [success] Danno persistente dopo completamento {challengeCode}.
+- [talking] Sequenza finale favorevole a {team}.
+- [success] Evento con effetto cumulativo critico.
+- [talking] Contenimento in corso, efficacia limitata.
+
+ERRORE
+- [thinking] {team}, risposta errata su {challengeCode}.
+- [talking] Tentativo non valido da {team}. Sistema in analisi.
+- [thinking] Esito negativo: {team} su {challengeCode}.
+- [talking] Verifica fallita. Nessun impatto aggiuntivo.
+- [thinking] Input non coerente rilevato per {team}.
+- [thinking] Errore formale rilevato su input {team}.
+- [talking] Validazione negativa, stato invariato.
+- [thinking] Tentativo annullato dal parser di controllo.
+- [talking] {team}, risposta non conforme ai criteri.
+- [thinking] Nessun avanzamento ottenuto da {challengeCode}.
+- [talking] Citazione The Matrix Reloaded: "Choice. The problem is choice."
+- [thinking] Esito nullo archiviato.
+- [talking] Tempo perso, impatto nullo.
+- [thinking] Riprova consigliata con approccio alternativo.
+- [talking] Controllo checksum fallito.
+
+ERRORE RIPETUTO
+- [thinking] {team}, errori ripetuti su {challengeCode}. 
+- [talking] Sequenza di tentativi non validi confermata.
+- [alert] Pattern critico: {team} bloccato su {challengeCode}.
+- [thinking] Ripetizione errore rilevata su {challengeCode}.
+- [talking] {team}, necessaria revisione approccio su {challengeCode}.
+- [thinking] Rilevata saturazione tentativi su {challengeCode}.
+- [talking] {team}, progressione bloccata da errori iterativi.
+- [alert] Burst di fallimenti in fase finale.
+- [thinking] Nessuna correzione osservata nell ultima serie.
+- [talking] Sequenza ripetitiva non produttiva.
+- [alert] Pattern stabile di errore: priorità media.
+- [thinking] Analisi: stessa causa, stessi esiti.
+- [talking] Citazione Fight Club: "This is your life and it's ending one minute at a time."
+- [alert] Ultimi tentativi invalidi consecutivi.
+- [thinking] Suggerita ricalibrazione completa su {challengeCode}.
+
+============================================================
+MAPPATURA LOGICA
+============================================================
+IDLE
+- lobby: usa solo blocco "LOBBY - IDLE"
+- fase 1/2/3: usa solo blocco "IDLE" della fase corrente
+
+EVENTI
+- challenge_complete: usa "SFIDA RISOLTA" della fase corrente
+- wrong: usa "ERRORE" della fase corrente
+- wrong_streak: usa "ERRORE RIPETUTO" della fase corrente
+
+ANIMAZIONE
+- usare SEMPRE il mode della frase selezionata
+- nessun override da stato emotivo separato
+

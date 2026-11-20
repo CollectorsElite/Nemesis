@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escalation CTF — Admin Dashboard</title>
+<link rel="stylesheet" href="Nemesis/nemesis.css">
+<style>
+:root {
+  --navy:    #0d1f33;
+  --navy2:   #152f4e;
+  --navy3:   #1c3d63;
+  --navy4:   #254d7a;
+  --orange:  #d86e33;
+  --orange2: #e8813d;
+  --orange3: #f0a060;
+  --white:   #ffffff;
+  --off:     #e8edf2;
+  --muted:   #7a95b0;
+  --muted2:  #4a6580;
+  --border:  #1e3a55;
+  --green:   #2ecc71;
+  --red:     #e74c3c;
+  --mono:    'Share Tech Mono', monospace;
+  --sans:    'Barlow', sans-serif;
+  --cond:    'Barlow Condensed', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: var(--sans); background: var(--navy); color: var(--off); display: flex; flex-direction: column; }
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 15% 50%, #1c3d6318 0%, transparent 55%),
+              radial-gradient(ellipse at 85% 10%, #d86e3310 0%, transparent 45%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── HEADER ── */
+.header {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; height: 52px;
+  background: rgba(13,31,51,.95);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 20px; min-width: 0; }
+.header-logos { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.header-logo-its { height: 22px; width: auto; display: block; opacity: .95; }
+.header-logo-divider { width: 1px; height: 28px; background: var(--border); }
+.header-logo-bespoke { height: 30px; width: auto; display: block; }
+.header-title {
+  font-family: var(--cond); font-size: 14px; font-weight: 700;
+  letter-spacing: 3px; color: var(--off); text-transform: uppercase;
+  padding-left: 20px; border-left: 1px solid var(--border);
+}
+.header-right { display: flex; align-items: center; gap: 12px; }
+.admin-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10px; color: var(--orange);
+  border: 1px solid rgba(216,110,51,.3); border-radius: 3px; padding: 4px 10px;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.btn-logout { font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px solid var(--border); background: transparent; padding: 4px 10px; border-radius: 3px; cursor: pointer; letter-spacing: 1px; transition: all .2s; }
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+/* ── LAYOUT ── */
+.layout { display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 200px; flex-shrink: 0;
+  background: rgba(13,31,51,.8);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 16px 0;
+}
+.sidebar-section { margin-bottom: 20px; }
+.sidebar-label { font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: 2px; color: var(--muted2); text-transform: uppercase; padding: 0 16px; margin-bottom: 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--muted); transition: all .15s;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--off); background: rgba(255,255,255,.03); }
+.nav-item.active { color: var(--orange); border-left-color: var(--orange); background: rgba(216,110,51,.06); }
+.nav-icon { font-size: 14px; width: 16px; text-align: center; }
+.sidebar-bottom { margin-top: auto; padding: 16px; border-top: 1px solid var(--border); }
+.system-status { font-family: var(--mono); font-size: 10px; color: var(--muted2); line-height: 1.8; }
+.system-status span { color: var(--green); }
+.system-status span.err { color: var(--red); }
+
+/* ── MAIN CONTENT ── */
+.main { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-title { font-family: var(--cond); font-size: 22px; font-weight: 900; letter-spacing: 2px; color: var(--white); text-transform: uppercase; margin-bottom: 4px; }
+.page-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+/* ── STAT CARDS ── */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: rgba(21,47,78,.5); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; overflow: hidden; }
+.stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--card-color, var(--border)); }
+.stat-label { font-family: var(--cond); font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+.stat-val { font-family: var(--mono); font-size: 30px; font-weight: 700; color: var(--white); }
+.stat-val.orange { color: var(--orange); }
+.stat-val.green { color: var(--green); }
+.stat-val.red { color: var(--red); }
+.stat-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+/* ── PANELS ── */
+.panel { background: rgba(21,47,78,.4); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+.panel-header {
+  padding: 12px 18px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(13,31,51,.4);
+}
+.panel-title { font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.btn { padding: 7px 16px; border-radius: 6px; border: none; font-family: var(--cond); font-size: 12px; font-weight: 700; letter-spacing: 1px; cursor: pointer; text-transform: uppercase; transition: all .15s; }
+.btn-orange { background: var(--orange); color: #fff; }
+.btn-orange:hover { background: var(--orange2); }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-ghost:hover { border-color: var(--muted); color: var(--off); }
+.btn-danger { background: rgba(231,76,60,.15); border: 1px solid rgba(231,76,60,.4); color: var(--red); }
+.btn-danger:hover { background: rgba(231,76,60,.25); }
+.btn-green { background: rgba(46,204,113,.15); border: 1px solid rgba(46,204,113,.4); color: var(--green); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 16px; text-align: left; font-family: var(--cond); font-size: 10px; letter-spacing: 2px; color: var(--muted2); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid rgba(30,58,85,.5); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,.02); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 3px; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+.badge-active   { background: rgba(46,204,113,.12); color: var(--green); border: 1px solid rgba(46,204,113,.3); }
+.badge-waiting  { background: rgba(216,110,51,.12); color: var(--orange); border: 1px solid rgba(216,110,51,.3); }
+.badge-ended    { background: rgba(74,101,128,.12); color: var(--muted); border: 1px solid var(--border); }
+.badge-coop     { background: rgba(46,130,204,.12); color: #5dade2; border: 1px solid rgba(93,173,226,.3); }
+.badge-comp     { background: rgba(231,76,60,.12); color: #e67e22; border: 1px solid rgba(230,126,34,.3); }
+.action-btns { display: flex; gap: 6px; }
+
+/* ── USERS ── */
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--cond); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+
+/* ── EMPTY STATE ── */
+.empty-state { padding: 40px; text-align: center; font-family: var(--mono); font-size: 12px; color: var(--muted2); }
+
+/* ── SPECTATOR ── */
+.spectator-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+.spec-main { display: flex; flex-direction: column; gap: 14px; }
+.spec-sidebar { display: flex; flex-direction: column; gap: 14px; }
+
+/* → stili NEMESIS estratti in Nemesis/nemesis.css */
+
+/* ── LOG FEED ── */
+.log-feed { max-height: 160px; overflow-y: auto; }
+.log-item { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px solid rgba(30,58,85,.4); font-family: var(--mono); font-size: 11px; }
+.log-item:last-child { border: none; }
+.log-t { color: var(--muted2); flex-shrink: 0; }
+.log-m { color: var(--off); }
+.log-m em { color: #5dade2; font-style: normal; }
+.log-m .fl { color: var(--green); }
+.log-feed.compact { max-height: none; overflow-y: auto; }
+.log-feed.compact .log-item { gap: 8px; padding: 6px 0; font-size: 10px; }
+.log-feed.compact .log-t { min-width: 56px; }
+
+/* ── FULLSCREEN NEMESIS: side events panel ── */
+#nem-fs-events-panel {
+  position: absolute;
+  top: 68px;
+  right: 18px;
+  bottom: 18px;
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(5,12,21,.92);
+  border: 1px solid var(--border);
+}
+#nem-fs-events-feed {
+  padding: 10px 12px;
+  flex: 1;
+}
+
+/* ── CHALLENGE GRID ── */
+.challenge-mini-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.ch-mini { background: rgba(13,31,51,.6); border: 1px solid var(--border); border-radius: 6px; padding: 8px 6px; text-align: center; font-family: var(--mono); font-size: 9px; color: var(--muted); position: relative; overflow: hidden; }
+.ch-mini::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--c, var(--border)); }
+.ch-mini.solved { border-color: rgba(46,204,113,.4); background: rgba(46,204,113,.06); }
+.ch-mini.solved .ch-mini-id { color: var(--green); }
+.ch-mini-id { font-size: 8px; margin-bottom: 2px; }
+.ch-mini-pts { font-size: 9px; color: var(--orange); }
+
+/* ── MODAL ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(5,15,25,.8); backdrop-filter: blur(4px); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--navy2); border: 1px solid var(--border); border-radius: 14px; padding: 28px; width: 100%; max-width: 460px; position: relative; }
+.modal::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--navy2), var(--orange), var(--navy2)); border-radius: 14px 14px 0 0; }
+.modal-title { font-family: var(--cond); font-size: 20px; font-weight: 900; letter-spacing: 2px; color: var(--white); text-transform: uppercase; margin-bottom: 6px; }
+.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-family: var(--cond); font-size: 10px; font-weight: 600; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+.form-input { width: 100%; background: rgba(13,31,51,.8); border: 1px solid var(--border); border-radius: 7px; padding: 10px 14px; font-family: var(--mono); font-size: 13px; color: var(--off); outline: none; transition: border-color .2s; }
+.form-input:focus { border-color: var(--orange); }
+.form-select { width: 100%; background: rgba(13,31,51,.8); border: 1px solid var(--border); border-radius: 7px; padding: 10px 14px; font-family: var(--sans); font-size: 13px; color: var(--off); outline: none; }
+.modal-row { display: flex; gap: 10px; }
+.modal-row .form-group { flex: 1; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* Modale creazione/modifica sessione: altezza limitata + scroll verticale (scrollbar a destra) */
+#modal-new-session > .modal {
+  max-height: min(92vh, 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.cat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.cat-chip { display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: rgba(13,31,51,.7); font-family: var(--cond); font-size: 11px; font-weight: 600; letter-spacing: 1.5px; color: var(--muted); cursor: pointer; user-select: none; transition: border-color .15s, color .15s, background .15s; }
+.cat-chip input[type=checkbox] { display: none; }
+.cat-chip.active { border-color: var(--orange); color: var(--orange); background: rgba(216,110,51,.1); }
+.cat-chip-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.cat-hint { font-size: 10px; color: var(--muted2); margin-top: 6px; letter-spacing: .5px; }
+
+/* → stili fullscreen NEMESIS estratti in Nemesis/nemesis.css */
+
+/* ── LOGHI fullscreen ── */
+.nem-fs-logos {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.nem-fs-logos-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+}
+
+/* ── TOAST ── */
+#toast-container {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  min-width: 240px;
+  max-width: 360px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(13,31,51,.95);
+  color: var(--off);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  box-shadow: 0 8px 20px rgba(0,0,0,.35);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all .2s ease;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.ok { border-color: rgba(46,204,113,.45); color: var(--green); }
+.toast.err { border-color: rgba(231,76,60,.45); color: var(--red); }
+.toast.info { border-color: rgba(216,110,51,.45); color: var(--orange3); }
+</style>
+<link rel="icon" href="/assets/escalation-segno.svg"><link rel="stylesheet" href="/assets/suite.css">
+<script defer src="/assets/suite.js"></script>
+</head>
+<body class="screen-admin_dashboard">
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <div class="suite-brand" aria-label="Escalation CTF"><img class="suite-mark" src="/assets/escalation-segno.svg" alt=""><img class="suite-name" src="/assets/escalation-nome.svg" alt="Escalation"><b>CTF</b></div>
+    <div class="header-logo-divider"></div>
+    <div class="header-title">Regia docente</div>
+  </div>
+  <div class="header-right">
+    <div class="admin-badge"><div class="status-dot"></div>admin</div>
+    <button class="btn-logout" id="btn-logout">Esci</button>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Gestione</div>
+      <div class="nav-item active" id="nav-sessions" onclick="showPage('sessions',this)"><span class="nav-icon">◈</span> Sessioni</div>
+      <div class="nav-item" id="nav-users" onclick="showPage('users',this)"><span class="nav-icon">◎</span> Utenti</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Monitor</div>
+      <div class="nav-item" id="nav-spectator" onclick="showPage('spectator',this)"><span class="nav-icon">▶</span> Spettatore</div>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="system-status" id="system-status">
+        Server: <span>online</span><br>
+        DB: <span id="db-status">—</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ── SESSIONI ── -->
+    <div id="page-sessions" class="page active">
+      <div class="page-title">Sessioni di gioco</div>
+      <div class="page-sub">Gestisci le sessioni attive, in attesa e concluse.</div>
+
+      <div class="stats-row">
+        <div class="stat-card" style="--card-color:var(--orange)"><div class="stat-label">Sessioni attive</div><div class="stat-val orange" id="stat-active">—</div><div class="stat-sub">in corso ora</div></div>
+        <div class="stat-card" style="--card-color:#5dade2"><div class="stat-label">In attesa</div><div class="stat-val" id="stat-pending" style="color:#5dade2">—</div><div class="stat-sub">lobby aperta</div></div>
+        <div class="stat-card" style="--card-color:var(--green)"><div class="stat-label">Concluse</div><div class="stat-val green" id="stat-ended">—</div><div class="stat-sub">totale storico</div></div>
+        <div class="stat-card" style="--card-color:var(--muted)"><div class="stat-label">Utenti totali</div><div class="stat-val" id="stat-users">—</div><div class="stat-sub">registrati</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Tutte le sessioni</div>
+          <button class="btn btn-orange" onclick="openNewSessionModal()">+ Nuova sessione</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Nome</th><th>Codice</th><th>Modalità</th><th>Giocatori</th><th>Stato</th><th>Timer</th><th>Azioni</th></tr>
+          </thead>
+          <tbody id="sessions-tbody">
+            <tr><td colspan="7" class="empty-state">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── UTENTI ── -->
+    <div id="page-users" class="page">
+      <div class="page-title">Gestione utenti</div>
+      <div class="page-sub">Crea, modifica e assegna i giocatori alle sessioni.</div>
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title" id="users-panel-title">Utenti registrati</div>
+          <button class="btn btn-orange" onclick="openNewUserModal()">+ Nuovo utente</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Giocatore</th><th>Username</th><th>Sessioni assegnate</th><th>Ultimo accesso</th><th>Azioni</th></tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="5" class="empty-state">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── SPETTATORE ── -->
+    <div id="page-spectator" class="page">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div>
+          <div class="page-title" id="spec-title">Spettatore</div>
+          <div class="page-sub" id="spec-sub">Seleziona una sessione dalla lista per osservarla.</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="showPage('sessions',document.getElementById('nav-sessions'))">← Torna alle sessioni</button>
+        </div>
+      </div>
+
+      <div id="spec-no-session" style="padding:60px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted2)">
+        Nessuna sessione selezionata. Vai in Sessioni e clicca ▶ Osserva.
+      </div>
+
+      <div id="spec-content" style="display:none">
+        <div class="spectator-layout">
+          <div class="spec-main">
+            <!-- Scoreboard -->
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Punteggi squadre</div></div>
+              <table>
+                <thead><tr><th>Rk</th><th>Squadra</th><th>Punteggio</th><th>Sfide</th><th>Hint usati</th></tr></thead>
+                <tbody id="scoreboard-tbody">
+                  <tr><td colspan="5" class="empty-state">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Sfide grid -->
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title" id="ch-grid-title">Stato sfide</div></div>
+              <div style="padding:14px">
+                <div class="challenge-mini-grid" id="ch-grid-spec"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="spec-sidebar">
+            <!-- NEMESIS WIDGET -->
+            <div class="nemesis-widget">
+              <div class="nem-label">◈ NEMESIS // INTEGRITÀ</div>
+              <div id="nem-mode-tag"></div>
+              <div class="nem-canvas-wrap">
+                <canvas id="nem-canvas-small" width="120" height="120"></canvas>
+              </div>
+              <div class="nem-bar-wrap">
+                <div class="nem-bar-track"><div class="nem-bar-fill" id="nem-bar-small"></div></div>
+              </div>
+              <div class="nem-integrity" id="nem-integrity-small">—</div>
+              <div class="nem-state-label" id="nem-state-small">—</div>
+              <div class="nem-msg" id="nem-msg-small"></div>
+              <div class="nem-progress-wrap">
+                <div class="nem-progress-title">Sfide attive</div>
+                <div class="nem-challenge-dots" id="nem-challenge-dots"></div>
+              </div>
+              <div class="nem-score-mini" id="nem-score-mini"></div>
+              <div class="nem-actions">
+                <button class="btn btn-ghost btn-sm" style="font-size:9px" onclick="openFullscreen()">⤢ Schermo grande</button>
+              </div>
+            </div>
+
+            <!-- COMPETITIVE: per-team NEMESIS ranking -->
+            <div class="panel" id="spec-team-nemesis-panel" style="display:none">
+              <div class="panel-header"><div class="panel-title">◈ NEMESIS per squadra</div></div>
+              <div style="padding:8px 10px">
+                <div class="team-nem-list" id="team-nem-list"></div>
+              </div>
+            </div>
+
+            <!-- Log eventi -->
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Log eventi</div></div>
+              <div style="padding:10px 14px" class="log-feed" id="log-feed"></div>
+            </div>
+
+            <!-- Timer -->
+            <div class="panel">
+              <div class="panel-header"><div class="panel-title">Timer partita</div></div>
+              <div style="padding:14px;text-align:center">
+                <div style="font-family:var(--mono);font-size:32px;color:var(--green);letter-spacing:4px" id="spec-timer">—</div>
+                <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px">Tempo rimanente</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- FULLSCREEN NEMESIS -->
+<div id="nem-fullscreen">
+  <div class="nem-fs-logos">
+    <img src="logo.svg" alt="ITS Rossellini" class="header-logo-its">
+    <div class="nem-fs-logos-divider"></div>
+    <img src="LOGO_BESPOKEAIDA.svg" alt="BespokeAIDA" class="header-logo-bespoke">
+  </div>
+  <button id="nem-fs-close" onclick="closeFullscreen()">✕ CHIUDI</button>
+  <div class="nem-fs-label">◈ NEMESIS // SISTEMA DI DIFESA</div>
+  <div id="nem-fs-mode-tag"></div>
+  <canvas id="nem-canvas-large" width="280" height="280"></canvas>
+  <div class="nem-fs-bar-wrap">
+    <div class="nem-fs-bar-track"><div class="nem-fs-bar-fill" id="nem-bar-large"></div></div>
+    <div class="nem-fs-integrity" id="nem-integrity-large">—</div>
+    <div class="nem-fs-state" id="nem-state-large">—</div>
+  </div>
+  <div class="nem-fs-msg" id="nem-msg-large" style="display:none"></div>
+  <div class="nem-fs-progress-wrap">
+    <div class="nem-progress-title">Sfide attive</div>
+    <div class="nem-challenge-dots" id="nem-challenge-dots-fs"></div>
+  </div>
+  <div class="nem-score-mini nem-score-mini-fs" id="nem-score-mini-fs"></div>
+  <div id="nem-fs-events-panel" class="panel">
+    <div class="panel-header"><div class="panel-title">Log eventi</div></div>
+    <div id="nem-fs-events-feed" class="log-feed compact"></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+
+<!-- MODAL: Nuova sessione -->
+<div class="modal-overlay" id="modal-new-session">
+  <div class="modal">
+    <div id="session-modal-title" class="modal-title">Nuova sessione</div>
+    <div id="session-modal-sub" class="modal-sub">Configura una sessione di Escalation CTF.</div>
+    <div class="form-group"><label class="form-label">Nome sessione</label><input id="new-session-name" class="form-input" type="text" placeholder="es. Demo Cliente Maggio 2025"></div>
+    <div class="modal-row">
+      <div class="form-group"><label class="form-label">Codice game</label><input id="new-session-code" class="form-input" type="text" placeholder="AUTO" style="text-transform:uppercase"></div>
+      <div class="form-group"><label class="form-label">Durata (minuti)</label><input id="new-session-duration" class="form-input" type="number" value="90"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Modalità di gioco</label>
+      <select id="new-session-mode" class="form-select">
+        <option value="coop">Co-op contro NEMESIS</option>
+        <option value="competitive">Competitiva (tutti contro tutti)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categorie sfide</label>
+      <div class="cat-chips" id="new-session-cats">
+        <label class="cat-chip active" data-cat="WEB"><input type="checkbox" value="WEB" checked><span class="cat-chip-dot"></span>WEB</label>
+        <label class="cat-chip active" data-cat="CRYPTO"><input type="checkbox" value="CRYPTO" checked><span class="cat-chip-dot"></span>CRYPTO</label>
+        <label class="cat-chip active" data-cat="FORENSICS"><input type="checkbox" value="FORENSICS" checked><span class="cat-chip-dot"></span>FORENSICS</label>
+        <label class="cat-chip active" data-cat="REVERSE"><input type="checkbox" value="REVERSE" checked><span class="cat-chip-dot"></span>REVERSE</label>
+        <label class="cat-chip active" data-cat="OSINT"><input type="checkbox" value="OSINT" checked><span class="cat-chip-dot"></span>OSINT</label>
+      </div>
+      <div class="cat-hint">Almeno una categoria richiesta. Tutte selezionate di default.</div>
+    </div>
+    <div class="form-group" id="new-session-challenges-group">
+      <label class="form-label">Sfide selezionate (per categoria)</label>
+      <div id="new-session-challenges" class="form-select" style="height:190px;overflow:auto;padding:8px"></div>
+      <div class="form-label" style="font-size:9px;color:var(--muted2);margin-top:6px;letter-spacing:1px">
+        Seleziona le singole challenge da includere nella sessione.
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giocatori assegnati (opzionale)</label>
+      <div id="new-session-users" class="form-select" style="height:140px;overflow:auto;padding:8px"></div>
+      <div class="form-label" style="font-size:9px;color:var(--muted2);margin-top:6px;letter-spacing:1px">
+        Seleziona i team da includere in questa sessione.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-session')">Annulla</button>
+      <button id="btn-create-session" class="btn btn-orange" onclick="submitSessionModal()">Crea sessione</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuovo utente -->
+<div class="modal-overlay" id="modal-new-user">
+  <div class="modal">
+    <div id="user-modal-title" class="modal-title">Nuovo utente</div>
+    <div id="user-modal-sub" class="modal-sub">Crea le credenziali per un nuovo giocatore.</div>
+    <div class="form-group"><label class="form-label">Nome squadra</label><input id="new-user-team" class="form-input" type="text" placeholder="es. Squadra Foxtrot"></div>
+    <div class="modal-row">
+      <div class="form-group"><label class="form-label">Username</label><input id="new-user-username" class="form-input" type="text" placeholder="squadra_foxtrot"></div>
+      <div class="form-group"><label class="form-label">Password</label><input id="new-user-password" class="form-input" type="text" placeholder="••••••••"></div>
+    </div>
+    <div id="user-password-note" class="form-label" style="font-size:9px;color:var(--muted2);margin-top:-8px;margin-bottom:12px;letter-spacing:1px">In modifica: lascia vuoto per non cambiare password</div>
+    <input id="new-user-color" type="hidden" value="#d86e33">
+    <div class="form-group"><label class="form-label">Colore squadra</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <div class="color-dot" data-color="#d86e33" style="width:28px;height:28px;border-radius:50%;background:#d86e33;cursor:pointer;border:2px solid #fff"></div>
+        <div class="color-dot" data-color="#2e86c1" style="width:28px;height:28px;border-radius:50%;background:#2e86c1;cursor:pointer"></div>
+        <div class="color-dot" data-color="#27ae60" style="width:28px;height:28px;border-radius:50%;background:#27ae60;cursor:pointer"></div>
+        <div class="color-dot" data-color="#8e44ad" style="width:28px;height:28px;border-radius:50%;background:#8e44ad;cursor:pointer"></div>
+        <div class="color-dot" data-color="#c0392b" style="width:28px;height:28px;border-radius:50%;background:#c0392b;cursor:pointer"></div>
+        <div class="color-dot" data-color="#16a085" style="width:28px;height:28px;border-radius:50%;background:#16a085;cursor:pointer"></div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:4px">
+      <label class="form-label">Tipo utente</label>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <button id="role-btn-player" class="btn btn-orange btn-sm" style="flex:1" onclick="setUserRole('player')">👤 Giocatore</button>
+        <button id="role-btn-referente" class="btn btn-ghost btn-sm" style="flex:1" onclick="setUserRole('referente')">🔭 Referente</button>
+      </div>
+      <div id="role-note" style="font-size:9px;color:var(--muted2);margin-top:6px;letter-spacing:1px;font-family:var(--mono)">
+        GIOCATORE — accede alle sfide. REFERENTE — accede alla vista osservatore della sessione.
+      </div>
+      <input id="new-user-role" type="hidden" value="player">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-user')">Annulla</button>
+      <button id="btn-create-user" class="btn btn-orange" onclick="submitUserModal()">Crea utente</button>
+    </div>
+  </div>
+</div>
+
+<script src="Nemesis/nemesis-preset.js"></script>
+<script src="Nemesis/orb.js"></script>
+<script src="Nemesis/nemesis.js"></script>
+<script>
+/* NemesisOrb, updateNemesisUI, openFullscreen, closeFullscreen, focusTeamNemesis
+   sono definiti in Nemesis/nemesis.js, caricato sopra */
+
+/* ============================================================
+   PAGE NAVIGATION
+   ============================================================ */
+function showPage(id, tabEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (tabEl) tabEl.classList.add('active');
+  else {
+    const map = { sessions: 'nav-sessions', users: 'nav-users', spectator: 'nav-spectator' };
+    if (map[id]) document.getElementById(map[id])?.classList.add('active');
+  }
+  if (id === 'users' && !_usersLoaded) loadUsers();
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(m =>
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); })
+);
+
+async function apiJson(url, options = {}) {
+  const r = await fetch(url, options);
+  const data = await r.json().catch(() => ({}));
+  if (r.status === 401) {
+    window.location.href = '/login.html';
+    throw new Error('UNAUTHORIZED');
+  }
+  if (!r.ok || data.ok === false) {
+    throw new Error(data.error || 'REQUEST_FAILED');
+  }
+  return data;
+}
+
+function showToast(message, type = 'info') {
+  const wrap = document.getElementById('toast-container');
+  if (!wrap) return;
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = message;
+  wrap.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => {
+    t.classList.remove('show');
+    setTimeout(() => t.remove(), 220);
+  }, 2600);
+}
+
+/* ============================================================
+   CATEGORY COLORS
+   ============================================================ */
+const CAT_COLOR = {
+  WEB:       '#5dade2',
+  CRYPTO:    '#f1c40f',
+  FORENSICS: '#2ecc71',
+  REVERSE:   '#e74c3c',
+  OSINT:     '#9b59b6',
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let _spectatorSessionId   = null;
+let _spectatorMode        = 'coop';
+let _spectatorPollTimer   = null;
+let _countdownTimer       = null;
+let _spectatorStartedAt   = null;
+let _spectatorDuration    = 90;
+let _usersLoaded          = false;
+let _usersCache           = [];
+let _challengesCache      = [];
+let _sessionEditingId     = null;
+let _sessionEditingRoster = null; // Set<number> dei user_id al momento dell'apertura del modale
+let _userEditingId        = null;
+let _spectatorFromQueryBoot = false;
+let _selectedTeamViewId   = null;
+let _selectedTeamViewName = '';
+let _lastSpectatorData    = null;
+
+/* ============================================================
+   FORMAT HELPERS
+   ============================================================ */
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fmtTimer(seconds) {
+  if (seconds <= 0) return '00:00:00';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+}
+
+/* ============================================================
+   AUTH CHECK
+   ============================================================ */
+async function checkAuth() {
+  try {
+    const r = await fetch('/api/health');
+    if (!r.ok) throw new Error();
+    document.getElementById('db-status').textContent = 'connesso';
+    document.getElementById('db-status').className   = '';
+  } catch {
+    document.getElementById('db-status').textContent = 'errore';
+    document.getElementById('db-status').className   = 'err';
+  }
+}
+
+/* ============================================================
+   LOGOUT
+   ============================================================ */
+document.getElementById('btn-logout').addEventListener('click', async () => {
+  await fetch('/api/admin/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+});
+
+/* ============================================================
+   LOAD SESSIONS
+   ============================================================ */
+async function loadSessions() {
+  try {
+    const r = await fetch('/api/admin/sessions');
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error);
+    renderStats(data.stats);
+    renderSessionsTable(data.sessions);
+    maybeBootSpectatorFromQuery(data.sessions || []);
+  } catch (e) {
+    console.error('loadSessions', e);
+    document.getElementById('sessions-tbody').innerHTML =
+      '<tr><td colspan="7" class="empty-state">Errore nel caricamento dei dati.</td></tr>';
+  }
+}
+
+function maybeBootSpectatorFromQuery(sessions) {
+  if (_spectatorFromQueryBoot) return;
+  const qs = new URLSearchParams(window.location.search);
+  const sid = Number(qs.get('spectator'));
+  if (!Number.isInteger(sid) || sid <= 0) {
+    _spectatorFromQueryBoot = true;
+    return;
+  }
+  const s = sessions.find((x) => x.id === sid);
+  if (!s) return;
+  _spectatorFromQueryBoot = true;
+  openSpectator(s.id, s.mode, s.started_at || null, s.duration_mins || 90);
+  if (qs.get('nemesis') === '1') {
+    setTimeout(() => openFullscreen(), 120);
+  }
+}
+
+function renderStats(stats) {
+  document.getElementById('stat-active').textContent  = stats.active  ?? 0;
+  document.getElementById('stat-pending').textContent = stats.pending ?? 0;
+  document.getElementById('stat-ended').textContent   = stats.ended   ?? 0;
+  document.getElementById('stat-users').textContent   = stats.users   ?? 0;
+}
+
+async function copyInvite(button) {
+  const url = new URL('/login.html',location.origin);
+  url.searchParams.set('sessione',button.dataset.code);
+  try {
+    await navigator.clipboard.writeText(url.href);
+    showToast('Link di accesso copiato.','ok');
+  } catch { window.prompt('Copia il link di accesso',url.href); }
+}
+function renderSessionsTable(sessions) {
+  const tbody = document.getElementById('sessions-tbody');
+  if (!sessions || !sessions.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nessuna sessione trovata.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sessions.map(s => {
+    const startedAtArg = s.started_at ? `'${String(s.started_at).replace(/'/g, "\\'")}'` : 'null';
+    const modeBadge = s.mode === 'coop'
+      ? '<span class="badge badge-coop">Co-op</span>'
+      : '<span class="badge badge-comp">Competitiva</span>';
+
+    let statusBadge, timerCell;
+    if (s.status === 'active') {
+      statusBadge = '<span class="badge badge-active">● Attiva</span>';
+      const elapsed = s.started_at ? Math.floor((Date.now() - new Date(s.started_at)) / 1000) : 0;
+      const rem     = Math.max(0, s.duration_mins * 60 - elapsed);
+      timerCell     = `<span style="font-family:var(--mono);font-size:12px;color:var(--green)">${fmtTimer(rem)}</span>`;
+    } else if (s.status === 'pending') {
+      statusBadge = '<span class="badge badge-waiting">◌ Lobby</span>';
+      timerCell   = `<span style="font-family:var(--mono);font-size:12px;color:var(--muted)">—</span>`;
+    } else {
+      statusBadge = '<span class="badge badge-ended">Conclusa</span>';
+      timerCell   = `<span style="font-family:var(--mono);font-size:12px;color:var(--muted)">00:00:00</span>`;
+    }
+
+    const actionBtns = s.status === 'ended'
+      ? `<button class="btn btn-ghost btn-sm" data-name="${escHtml(s.name)}" onclick="editSession(${s.id}, this.dataset.name, '${s.mode}', ${s.duration_mins})">✎ Modifica</button>
+         <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id})">✕ Elimina</button>`
+      : s.status === 'pending'
+        ? `<button class="btn btn-ghost btn-sm" data-name="${escHtml(s.name)}" onclick="editSession(${s.id}, this.dataset.name, '${s.mode}', ${s.duration_mins})">✎ Modifica</button>
+           <button class="btn btn-green btn-sm" onclick="startSession(${s.id})">▶ Avvia</button>
+           <button class="btn btn-orange btn-sm" onclick="startSessionAndOpenNemesis(${s.id},'${s.mode}',${s.duration_mins})">◈ Avvia + NEMESIS</button>
+           <button class="btn btn-ghost btn-sm" onclick="openSpectator(${s.id},'${s.mode}',${startedAtArg},${s.duration_mins})">⊙ Osserva</button>`
+        : `<button class="btn btn-ghost btn-sm" data-name="${escHtml(s.name)}" onclick="editSession(${s.id}, this.dataset.name, '${s.mode}', ${s.duration_mins})">✎ Modifica</button>
+           <button class="btn btn-ghost btn-sm" onclick="openSpectator(${s.id},'${s.mode}',${startedAtArg},${s.duration_mins})">▶ Osserva</button>
+           <button class="btn btn-danger btn-sm" onclick="terminateSession(${s.id})">■ Termina</button>`;
+
+    return `<tr>
+      <td><strong>${escHtml(s.name)}</strong></td>
+      <td><span style="font-family:var(--mono);color:var(--orange);font-size:12px">${escHtml(s.game_code || '—')}</span>
+      ${s.status==='ended'?'':`<button class="invite-btn" data-code="${escHtml(s.game_code)}" onclick="copyInvite(this)">Copia invito</button>`}</td>
+      <td>${modeBadge}</td>
+      <td style="font-family:var(--mono);font-size:12px">${s.players_connected} / ${s.players_total}</td>
+      <td>${statusBadge}</td>
+      <td>${timerCell}</td>
+      <td><div class="action-btns">${actionBtns}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ============================================================
+   LOAD USERS
+   ============================================================ */
+async function loadUsers() {
+  _usersLoaded = true;
+  try {
+    const data = await apiJson('/api/admin/users');
+    _usersCache = data.users || [];
+    renderUsersTable(data.users);
+    document.getElementById('users-panel-title').textContent =
+      `Utenti registrati (${data.users.length})`;
+    refreshSessionUserOptions();
+  } catch (e) {
+    console.error('loadUsers', e);
+    document.getElementById('users-tbody').innerHTML =
+      '<tr><td colspan="5" class="empty-state">Errore nel caricamento degli utenti.</td></tr>';
+  }
+}
+
+async function loadChallengesCatalog() {
+  try {
+    const data = await apiJson('/api/admin/challenges');
+    _challengesCache = (data && Array.isArray(data.challenges) ? data.challenges : []).filter((c) => c.is_active !== false);
+    renderSessionCategoryChips({ selectAll: true });
+    renderSessionChallengeOptions({ selectAllVisible: true });
+  } catch (e) {
+    console.error('loadChallengesCatalog', e);
+    const wrap = document.getElementById('new-session-challenges');
+    if (wrap) {
+      wrap.innerHTML = '<div style="color:var(--muted2);font-family:var(--mono);font-size:11px">Errore caricamento challenge dal DB.</div>';
+    }
+  }
+}
+
+function renderSessionCategoryChips({ selectAll = false } = {}) {
+  const wrap = document.getElementById('new-session-cats');
+  if (!wrap) return;
+  const prevSelected = new Set(getSelectedCategories().map((c) => String(c).toUpperCase()));
+  const cats = [...new Set((_challengesCache || []).map((c) => String(c.category || '').toUpperCase()).filter(Boolean))];
+  cats.sort((a, b) => a.localeCompare(b));
+  if (!cats.length) {
+    wrap.innerHTML = '<span style=\"color:var(--muted2);font-size:11px\">Nessuna categoria disponibile.</span>';
+    return;
+  }
+  wrap.innerHTML = cats.map((cat) => {
+    const checked = selectAll || prevSelected.has(cat);
+    const activeCls = checked ? 'active' : '';
+    return `<label class=\"cat-chip ${activeCls}\" data-cat=\"${escHtml(cat)}\"><input type=\"checkbox\" value=\"${escHtml(cat)}\" ${checked ? 'checked' : ''}><span class=\"cat-chip-dot\"></span>${escHtml(cat)}</label>`;
+  }).join('');
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('users-tbody');
+  if (!users || !users.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nessun utente registrato.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const initials = (u.team_name || u.username || '?')[0].toUpperCase();
+    const color    = u.color || '#7a95b0';
+    const sessions = u.sessions.length
+      ? u.sessions.map(s => `<span class="badge badge-active" style="margin-right:4px">${escHtml(s)}</span>`).join('')
+      : '<span style="color:var(--muted2);font-size:12px">—</span>';
+    const lastSeen = u.last_seen ? fmtDate(u.last_seen) : '—';
+    const roleBadge = u.role === 'referente'
+      ? '<span style="font-family:var(--mono);font-size:9px;background:#5dade220;color:#5dade2;border:1px solid #5dade240;border-radius:4px;padding:1px 6px;margin-left:6px">🔭 REFERENTE</span>'
+      : '';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div class="user-avatar" style="background:${color}20;color:${color};border:1px solid ${color}40">${initials}</div>
+        <span>${escHtml(u.team_name || u.username)}${roleBadge}</span>
+      </div></td>
+      <td><span style="font-family:var(--mono);font-size:12px;color:var(--muted)">${escHtml(u.username)}</span></td>
+      <td>${sessions}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${lastSeen}</td>
+      <td><div class="action-btns">
+        <button class="btn btn-ghost btn-sm" onclick="openEditUserModal(${u.id})">✎ Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ============================================================
+   SPECTATOR
+   ============================================================ */
+function openSpectator(sessionId, mode, startedAt, durationMins) {
+  _spectatorSessionId = sessionId;
+  _spectatorMode      = mode;
+  _spectatorStartedAt = startedAt;
+  _spectatorDuration  = durationMins;
+  showPage('spectator', document.getElementById('nav-spectator'));
+  document.getElementById('spec-no-session').style.display = 'none';
+  document.getElementById('spec-content').style.display    = '';
+  loadSpectator();
+  startCountdown();
+  startSpectatorPoll();
+}
+
+function refreshSessionUserOptions() {
+  const wrap = document.getElementById('new-session-users');
+  if (!wrap) return;
+  if (!_usersCache.length) {
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = _usersCache.map((u) =>
+    `<label style="display:flex;align-items:center;gap:8px;padding:4px 2px;cursor:pointer">
+      <input type="checkbox" class="session-user-check" value="${u.id}">
+      <span style="display:inline-flex;width:9px;height:9px;border-radius:50%;background:${u.color || '#d86e33'}"></span>
+      <span>${escHtml(u.team_name || u.username)} (${escHtml(u.username)})</span>
+    </label>`
+  ).join('');
+}
+
+function getSelectedSessionUserIds() {
+  return [...document.querySelectorAll('#new-session-users .session-user-check:checked')]
+    .map((o) => Number(o.value))
+    .filter((id) => Number.isInteger(id) && id > 0);
+}
+
+function getSelectedCategories() {
+  return [...document.querySelectorAll('#new-session-cats input[type=checkbox]:checked')]
+    .map((o) => o.value);
+}
+
+function getSelectedChallengeIds() {
+  return [...document.querySelectorAll('#new-session-challenges .session-challenge-check:checked')]
+    .map((o) => Number(o.value))
+    .filter((id) => Number.isInteger(id) && id > 0);
+}
+
+function renderSessionChallengeOptions({ selectAllVisible = false, addedCategory = null } = {}) {
+  const wrap = document.getElementById('new-session-challenges');
+  if (!wrap) return;
+  const selectedCats = new Set(getSelectedCategories());
+  const prevSelected = new Set(getSelectedChallengeIds());
+  const grouped = new Map();
+  for (const ch of _challengesCache) {
+    const cat = String(ch.category || '').toUpperCase();
+    if (!selectedCats.has(cat)) continue;
+    if (!grouped.has(cat)) grouped.set(cat, []);
+    grouped.get(cat).push(ch);
+  }
+  if (!grouped.size) {
+    wrap.innerHTML = '<div style="color:var(--muted2);font-family:var(--mono);font-size:11px">Nessuna challenge disponibile per le categorie selezionate.</div>';
+    return;
+  }
+  const html = [];
+  for (const [cat, items] of grouped.entries()) {
+    html.push(`<div style="margin:6px 0 4px;font-family:var(--mono);font-size:11px;color:${CAT_COLOR[cat] || 'var(--orange)'}">${escHtml(cat)}</div>`);
+    for (const ch of items) {
+      const selected = selectAllVisible || cat === addedCategory || prevSelected.has(Number(ch.id));
+      const checked = selected ? 'checked' : '';
+      html.push(`<label style="display:flex;align-items:flex-start;gap:8px;padding:3px 2px;cursor:pointer">
+        <input type="checkbox" class="session-challenge-check" value="${Number(ch.id)}" ${checked}>
+        <span style="font-size:11px;line-height:1.35">
+          <span style="font-family:var(--mono);color:var(--muted)">${escHtml(ch.code || 'CH')}</span>
+          — ${escHtml(ch.title || 'Senza titolo')}
+        </span>
+      </label>`);
+    }
+  }
+  wrap.innerHTML = html.join('');
+}
+
+// toggle cat-chip active state on click
+document.addEventListener('change', (e) => {
+  const chip = e.target.closest('#new-session-cats .cat-chip');
+  if (!chip) return;
+  chip.classList.toggle('active', e.target.checked);
+  renderSessionChallengeOptions({ addedCategory: e.target.checked ? e.target.value : null });
+});
+
+async function openNewSessionModal() {
+  if (!_usersCache.length) await loadUsers();
+  if (!_challengesCache.length) await loadChallengesCatalog();
+  _sessionEditingId = null;
+  document.getElementById('session-modal-title').textContent = 'Nuova sessione';
+  document.getElementById('session-modal-sub').textContent = 'Configura una sessione di Escalation CTF.';
+  document.getElementById('btn-create-session').textContent = 'Crea sessione';
+  document.getElementById('new-session-name').value = '';
+  document.getElementById('new-session-code').value = '';
+  document.getElementById('new-session-duration').value = '90';
+  document.getElementById('new-session-mode').value = 'coop';
+  document.querySelectorAll('#new-session-cats input[type=checkbox]').forEach((cb) => { cb.checked = true; });
+  document.querySelectorAll('#new-session-cats .cat-chip').forEach((ch) => ch.classList.add('active'));
+  const chGroup = document.getElementById('new-session-challenges-group');
+  if (chGroup) chGroup.style.display = '';
+  renderSessionChallengeOptions({ selectAllVisible: true });
+  refreshSessionUserOptions();
+  [...document.querySelectorAll('#new-session-users .session-user-check')].forEach((opt) => { opt.checked = false; });
+  openModal('modal-new-session');
+}
+
+async function openEditSessionModal(sessionId, currentName, currentMode, currentDuration) {
+  if (!_usersCache.length) await loadUsers();
+  if (!_challengesCache.length) await loadChallengesCatalog();
+  _sessionEditingId = sessionId;
+  document.getElementById('session-modal-title').textContent = 'Modifica sessione';
+  document.getElementById('session-modal-sub').textContent = 'Aggiorna dati sessione e giocatori assegnati.';
+  document.getElementById('btn-create-session').textContent = 'Salva modifiche';
+  document.getElementById('new-session-name').value = currentName || '';
+  document.getElementById('new-session-code').value = '';
+  document.getElementById('new-session-duration').value = String(currentDuration || 90);
+  document.getElementById('new-session-mode').value = currentMode === 'competitive' ? 'competitive' : 'coop';
+  const chGroup = document.getElementById('new-session-challenges-group');
+  if (chGroup) chGroup.style.display = 'none';
+  refreshSessionUserOptions();
+
+  const selectedSet = new Set();
+  try {
+    const data = await apiJson('/api/admin/sessions');
+    const s = (data.sessions || []).find((x) => x.id === sessionId);
+    if (s && s.players && Array.isArray(s.players)) {
+      for (const p of s.players) selectedSet.add(Number(p.id));
+    }
+  } catch {}
+  [...document.querySelectorAll('#new-session-users .session-user-check')].forEach((opt) => {
+    opt.checked = selectedSet.has(Number(opt.value));
+  });
+  _sessionEditingRoster = new Set([...selectedSet]);
+  openModal('modal-new-session');
+}
+
+async function submitSessionModal() {
+  if (_sessionEditingId) return updateSessionFromModal();
+  return createSessionFromModal();
+}
+
+async function createSessionFromModal() {
+  const btn = document.getElementById('btn-create-session');
+  const name = document.getElementById('new-session-name').value.trim();
+  const game_code = document.getElementById('new-session-code').value.trim().toUpperCase();
+  const duration_mins = Number(document.getElementById('new-session-duration').value || 90);
+  const mode = document.getElementById('new-session-mode').value === 'competitive' ? 'competitive' : 'coop';
+  const user_ids = getSelectedSessionUserIds();
+  const categories = getSelectedCategories();
+  const challenge_ids = getSelectedChallengeIds();
+
+  if (!name) {
+    showToast('Inserisci il nome della sessione.', 'err');
+    return;
+  }
+  if (!Number.isInteger(duration_mins) || duration_mins <= 0) {
+    showToast('Durata non valida.', 'err');
+    return;
+  }
+  if (categories.length === 0) {
+    showToast('Seleziona almeno una categoria.', 'err');
+    return;
+  }
+  if (challenge_ids.length === 0) {
+    showToast('Seleziona almeno una challenge.', 'err');
+    return;
+  }
+
+  try {
+    btn.disabled = true;
+    await apiJson('/api/admin/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        mode,
+        duration_mins,
+        game_code: game_code || undefined,
+        user_ids,
+        categories,
+        challenge_ids,
+      }),
+    });
+    closeModal('modal-new-session');
+    document.getElementById('new-session-name').value = '';
+    document.getElementById('new-session-code').value = '';
+    document.getElementById('new-session-duration').value = '90';
+    await loadSessions();
+    showToast('Sessione creata con successo.', 'ok');
+  } catch (e) {
+    console.error('createSessionFromModal', e);
+    showToast('Errore creazione sessione: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function updateSessionFromModal() {
+  const btn = document.getElementById('btn-create-session');
+  const name = document.getElementById('new-session-name').value.trim();
+  const duration_mins = Number(document.getElementById('new-session-duration').value || 90);
+  const mode = document.getElementById('new-session-mode').value === 'competitive' ? 'competitive' : 'coop';
+  const user_ids = getSelectedSessionUserIds();
+
+  if (!name) return showToast('Inserisci il nome della sessione.', 'err');
+  if (!Number.isInteger(duration_mins) || duration_mins <= 0) return showToast('Durata non valida.', 'err');
+
+  // Includi user_ids nel PATCH solo se il roster è cambiato rispetto all'apertura del modale.
+  // Se uguale, non mandiamo la chiave: il server non toccherà session_players (e gli score restano).
+  const currentSet = new Set(user_ids);
+  const rosterChanged = !_sessionEditingRoster ||
+    currentSet.size !== _sessionEditingRoster.size ||
+    [...currentSet].some((id) => !_sessionEditingRoster.has(id));
+  const body = { name, mode, duration_mins };
+  if (rosterChanged) body.user_ids = user_ids;
+
+  try {
+    btn.disabled = true;
+    await apiJson(`/api/admin/sessions/${_sessionEditingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    closeModal('modal-new-session');
+    await loadSessions();
+    if (_spectatorSessionId === _sessionEditingId) await loadSpectator();
+    showToast('Sessione aggiornata.', 'ok');
+  } catch (e) {
+    console.error('updateSessionFromModal', e);
+    showToast('Errore modifica sessione: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function submitUserModal() {
+  if (_userEditingId) return updateUserFromModal();
+  return createUserFromModal();
+}
+
+async function createUserFromModal() {
+  const btn = document.getElementById('btn-create-user');
+  const team_name = document.getElementById('new-user-team').value.trim();
+  const username = document.getElementById('new-user-username').value.trim();
+  const password = document.getElementById('new-user-password').value;
+  const color = document.getElementById('new-user-color').value;
+
+  if (!team_name || !username || !password) {
+    showToast('Compila nome squadra, username e password.', 'err');
+    return;
+  }
+
+  const role = document.getElementById('new-user-role').value || 'player';
+  try {
+    btn.disabled = true;
+    await apiJson('/api/admin/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team_name, username, password, color, role }),
+    });
+    closeModal('modal-new-user');
+    document.getElementById('new-user-team').value = '';
+    document.getElementById('new-user-username').value = '';
+    document.getElementById('new-user-password').value = '';
+    await loadUsers();
+    await loadSessions();
+    showToast('Utente creato con successo.', 'ok');
+  } catch (e) {
+    console.error('createUserFromModal', e);
+    showToast('Errore creazione utente: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function setUserRole(role) {
+  document.getElementById('new-user-role').value = role;
+  const btnP = document.getElementById('role-btn-player');
+  const btnR = document.getElementById('role-btn-referente');
+  if (role === 'referente') {
+    btnP.className = 'btn btn-ghost btn-sm'; btnP.style.flex = '1';
+    btnR.className = 'btn btn-orange btn-sm'; btnR.style.flex = '1';
+  } else {
+    btnP.className = 'btn btn-orange btn-sm'; btnP.style.flex = '1';
+    btnR.className = 'btn btn-ghost btn-sm'; btnR.style.flex = '1';
+  }
+}
+
+function openNewUserModal() {
+  _userEditingId = null;
+  document.getElementById('user-modal-title').textContent = 'Nuovo utente';
+  document.getElementById('user-modal-sub').textContent = 'Crea le credenziali per un nuovo giocatore.';
+  document.getElementById('btn-create-user').textContent = 'Crea utente';
+  document.getElementById('new-user-team').value = '';
+  document.getElementById('new-user-username').value = '';
+  document.getElementById('new-user-password').value = '';
+  document.getElementById('new-user-color').value = '#d86e33';
+  document.getElementById('user-password-note').style.display = 'none';
+  setUserRole('player');
+  document.querySelectorAll('.color-dot').forEach((d) => { d.style.border = 'none'; });
+  const first = document.querySelector('.color-dot[data-color="#d86e33"]');
+  if (first) first.style.border = '2px solid #fff';
+  openModal('modal-new-user');
+}
+
+function openEditUserModal(userId) {
+  const u = _usersCache.find((x) => x.id === userId);
+  if (!u) return;
+  _userEditingId = userId;
+  document.getElementById('user-modal-title').textContent = 'Modifica utente';
+  document.getElementById('user-modal-sub').textContent = 'Aggiorna profilo squadra e credenziali.';
+  document.getElementById('btn-create-user').textContent = 'Salva modifiche';
+  document.getElementById('new-user-team').value = u.team_name || '';
+  document.getElementById('new-user-username').value = u.username || '';
+  document.getElementById('new-user-password').value = '';
+  document.getElementById('new-user-color').value = u.color || '#d86e33';
+  document.getElementById('user-password-note').style.display = '';
+  setUserRole(u.role === 'referente' ? 'referente' : 'player');
+  document.querySelectorAll('.color-dot').forEach((d) => { d.style.border = 'none'; });
+  const selected = document.querySelector(`.color-dot[data-color="${u.color || '#d86e33'}"]`);
+  if (selected) selected.style.border = '2px solid #fff';
+  openModal('modal-new-user');
+}
+
+async function updateUserFromModal() {
+  const btn = document.getElementById('btn-create-user');
+  const team_name = document.getElementById('new-user-team').value.trim();
+  const username = document.getElementById('new-user-username').value.trim();
+  const password = document.getElementById('new-user-password').value;
+  const color = document.getElementById('new-user-color').value;
+  if (!team_name || !username) return showToast('Compila nome squadra e username.', 'err');
+
+  const role = document.getElementById('new-user-role').value || 'player';
+  const payload = { team_name, username, color, role };
+  if (password) payload.password = password;
+
+  try {
+    btn.disabled = true;
+    await apiJson(`/api/admin/users/${_userEditingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    closeModal('modal-new-user');
+    await loadUsers();
+    await loadSessions();
+    showToast('Utente aggiornato.', 'ok');
+  } catch (e) {
+    console.error('updateUserFromModal', e);
+    showToast('Errore modifica utente: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteUser(userId) {
+  if (!confirm('Eliminare definitivamente questo utente?')) return;
+  try {
+    await apiJson(`/api/admin/users/${userId}`, { method: 'DELETE' });
+    await loadUsers();
+    await loadSessions();
+    showToast('Utente eliminato.', 'ok');
+  } catch (e) {
+    console.error('deleteUser', e);
+    showToast('Errore eliminazione utente: ' + e.message, 'err');
+  }
+}
+
+async function startSession(sessionId) {
+  try {
+    await apiJson(`/api/admin/sessions/${sessionId}/start`, { method: 'POST' });
+    await loadSessions();
+    if (_spectatorSessionId === sessionId) await loadSpectator();
+    showToast('Sessione avviata.', 'ok');
+  } catch (e) {
+    console.error('startSession', e);
+    showToast('Errore avvio sessione: ' + e.message, 'err');
+  }
+}
+
+function openNemesisWindow(sessionId) {
+  const q = new URLSearchParams();
+  q.set('spectator', String(sessionId));
+  q.set('nemesis', '1');
+  window.open(`/admin_dashboard.html?${q.toString()}`, '_blank', 'noopener,noreferrer');
+}
+
+async function startSessionAndOpenNemesis(sessionId, mode, durationMins) {
+  await startSession(sessionId);
+  openSpectator(sessionId, mode || 'coop', null, Number(durationMins || 90));
+  setTimeout(() => openNemesisWindow(sessionId), 180);
+}
+
+async function terminateSession(sessionId) {
+  if (!confirm('Terminare questa sessione?')) return;
+  try {
+    await apiJson(`/api/admin/sessions/${sessionId}/terminate`, { method: 'POST' });
+    await loadSessions();
+    if (_spectatorSessionId === sessionId) await loadSpectator();
+    showToast('Sessione terminata.', 'ok');
+  } catch (e) {
+    console.error('terminateSession', e);
+    showToast('Errore terminazione sessione: ' + e.message, 'err');
+  }
+}
+
+async function deleteSession(sessionId) {
+  if (!confirm('Eliminare definitivamente questa sessione?')) return;
+  try {
+    await apiJson(`/api/admin/sessions/${sessionId}`, { method: 'DELETE' });
+    if (_spectatorSessionId === sessionId) {
+      _spectatorSessionId = null;
+      document.getElementById('spec-no-session').style.display = '';
+      document.getElementById('spec-content').style.display = 'none';
+    }
+    await loadSessions();
+    showToast('Sessione eliminata.', 'ok');
+  } catch (e) {
+    console.error('deleteSession', e);
+    showToast('Errore eliminazione sessione: ' + e.message, 'err');
+  }
+}
+
+async function editSession(sessionId, currentName, currentMode, currentDuration) {
+  await openEditSessionModal(sessionId, currentName, currentMode, currentDuration);
+}
+
+async function loadSpectator() {
+  if (!_spectatorSessionId) return;
+  try {
+    const r = await fetch(`/api/admin/sessions/${_spectatorSessionId}/spectator`);
+    if (r.status === 401) { window.location.href = '/login.html'; return; }
+    if (r.status === 404) {
+      _spectatorSessionId = null;
+      stopSpectatorPoll();
+      if (window.NEMESIS && typeof window.NEMESIS.pauseEngine === 'function') {
+        window.NEMESIS.pauseEngine();
+      }
+      if (window.NEMESIS && typeof window.NEMESIS.flushQueue === 'function') {
+        window.NEMESIS.flushQueue();
+      }
+      if (window.NEMESIS && typeof window.NEMESIS.stopTypingAndAudio === 'function') {
+        window.NEMESIS.stopTypingAndAudio();
+      }
+      if (_countdownTimer) { clearInterval(_countdownTimer); _countdownTimer = null; }
+      document.getElementById('spec-no-session').style.display = '';
+      document.getElementById('spec-content').style.display = 'none';
+      document.getElementById('spec-timer').textContent = '—';
+      showToast('Sessione non più disponibile (eliminata).', 'info');
+      return;
+    }
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error);
+    renderSpectator(data);
+  } catch (e) {
+    console.error('loadSpectator', e);
+  }
+}
+
+function renderSpectator(data) {
+  _lastSpectatorData = data;
+  const { session, scoreboard, challenges, nemesis, total_solved, total_challenges, events, team_nemesis, team_solved_challenges } = data;
+  const isCompetitive = session.mode === 'competitive';
+  _spectatorStartedAt = session.started_at || null;
+  _spectatorDuration = Number(session.duration_mins || _spectatorDuration || 90);
+  if (!isCompetitive) {
+    _selectedTeamViewId = null;
+    _selectedTeamViewName = '';
+  }
+  if (session.status === 'ended') {
+    stopSpectatorPoll();
+    if (window.NEMESIS && typeof window.NEMESIS.pauseEngine === 'function') {
+      window.NEMESIS.pauseEngine();
+    }
+    if (window.NEMESIS && typeof window.NEMESIS.flushQueue === 'function') {
+      window.NEMESIS.flushQueue();
+    }
+    if (window.NEMESIS && typeof window.NEMESIS.stopTypingAndAudio === 'function') {
+      window.NEMESIS.stopTypingAndAudio();
+    }
+  } else if (_spectatorSessionId) {
+    startSpectatorPoll();
+    if (window.NEMESIS && typeof window.NEMESIS.resumeEngine === 'function') {
+      window.NEMESIS.resumeEngine();
+    }
+  }
+
+  document.getElementById('spec-title').textContent = session.name;
+  const modeLabel = session.mode === 'coop' ? 'Co-op' : 'Competitiva';
+  const stLabel   = session.status === 'active' ? 'Partita in corso' : session.status === 'pending' ? 'Lobby' : 'Conclusa';
+  document.getElementById('spec-sub').innerHTML =
+    `Modalità ${modeLabel} · <span style="color:var(--green)">${stLabel}</span>`;
+
+  // Scoreboard
+  const sbTbody = document.getElementById('scoreboard-tbody');
+  if (!scoreboard || !scoreboard.length) {
+    sbTbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nessun giocatore connesso.</td></tr>';
+  } else {
+    const rankIcons = ['◆', '2', '3', '4', '5', '6', '7', '8'];
+    sbTbody.innerHTML = scoreboard.map((p, i) => {
+      const c = p.color || '#7a95b0';
+      return `<tr>
+        <td style="font-family:var(--mono);color:${i === 0 ? 'var(--orange)' : 'var(--muted)'}">${rankIcons[i] || i+1}</td>
+        <td><span style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${c};display:inline-block"></span>
+          ${escHtml(p.team_name)}
+        </span></td>
+        <td style="font-family:var(--mono);color:var(--green)">${p.score}</td>
+        <td style="font-family:var(--mono)">${p.challenges_solved}/${total_challenges || '?'}</td>
+        <td style="font-family:var(--mono);color:var(--muted)">${p.hints_used}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Challenge grid
+  const selectedStillExists = isCompetitive && team_nemesis && team_nemesis.some((t) => t.user_id === _selectedTeamViewId);
+  if (isCompetitive && !selectedStillExists) {
+    _selectedTeamViewId = null;
+    _selectedTeamViewName = '';
+  }
+  renderChallengeGrid({
+    challenges,
+    total_solved: total_solved || 0,
+    total_challenges: total_challenges || 0,
+    team_solved_challenges: team_solved_challenges || {},
+    selected_team_id: _selectedTeamViewId,
+    selected_team_name: _selectedTeamViewName,
+    is_competitive: isCompetitive,
+  });
+
+  // NEMESIS
+  const teamNemPanel = document.getElementById('spec-team-nemesis-panel');
+  if (session.mode === 'competitive' && team_nemesis && team_nemesis.length) {
+    teamNemPanel.style.display = '';
+    const list = document.getElementById('team-nem-list');
+    list.innerHTML = team_nemesis.map((t, i) => {
+      const isLeader = i === 0;
+      const barColor = t.integrity_pct >= 75 ? 'linear-gradient(90deg,#5dade2,#7fb3d3)'
+        : t.integrity_pct >= 40 ? 'linear-gradient(90deg,#d86e33,#f0a060)'
+        : 'linear-gradient(90deg,#e74c3c,#c0392b)';
+      const activeCls = t.user_id === _selectedTeamViewId ? ' active' : '';
+      return `<div class="team-nem-row${isLeader ? ' leader' : ''}${activeCls}" title="${escHtml(t.team_name)} — ${t.integrity_pct}% integrità" data-team="${escHtml(t.team_name)}" onclick="focusTeamView(${t.user_id},this.dataset.team,${t.integrity_pct},'${t.emotional_state}')">
+        <div class="team-nem-dot" style="background:${escHtml(t.color)}"></div>
+        <div class="team-nem-name">${escHtml(t.team_name)}</div>
+        <div class="team-nem-bar-wrap">
+          <div class="team-nem-bar-track"><div class="team-nem-bar-fill" style="width:${t.integrity_pct}%;background:${barColor}"></div></div>
+        </div>
+        <div class="team-nem-pct">${t.integrity_pct}%</div>
+        <div class="team-nem-solved">${t.challenges_solved}✓</div>
+      </div>`;
+    }).join('');
+    // Drive the orb with the leading team (worst NEMESIS = highest scorer)
+    // last_message viene dalla nemesis_state del server (frase canonica) — non rigenerare localmente
+    const leader = team_nemesis[0];
+    updateNemesisUI(
+      { integrity_pct: leader.integrity_pct, emotional_state: leader.emotional_state, last_message: nemesis?.last_message || null },
+      session.mode,
+      {
+        sessionName: session.name,
+        sessionStatus: session.status,
+        sessionMode: session.mode,
+        leaderTeamName: leader.team_name || '',
+        scoreboard: scoreboard || [],
+        challenges: challenges || [],
+        total_solved: total_solved || 0,
+        total_challenges: total_challenges || 0,
+      }
+    );
+  } else {
+    teamNemPanel.style.display = 'none';
+    updateNemesisUI(
+      nemesis,
+      session.mode,
+      {
+        sessionName: session.name,
+        sessionStatus: session.status,
+        sessionMode: session.mode,
+        scoreboard: scoreboard || [],
+        challenges: challenges || [],
+        total_solved: total_solved || 0,
+        total_challenges: total_challenges || 0,
+      }
+    );
+  }
+
+  // Log eventi (sidebar spectator + pannello fullscreen)
+  renderEventLogList('log-feed', events);
+  renderEventLogList('nem-fs-events-feed', events);
+}
+
+function renderEventLogList(targetId, events) {
+  const logEl = document.getElementById(targetId);
+  if (!logEl) return;
+  if (!events || !events.length) {
+    logEl.innerHTML = '<div style="color:var(--muted2);font-family:var(--mono);font-size:11px">Nessun evento ancora.</div>';
+    return;
+  }
+  logEl.innerHTML = events.map((e) => {
+    const t = e.created_at ? new Date(e.created_at).toLocaleTimeString('it', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--:--';
+    let msg = '';
+    if (e.type === 'flag_captured') {
+      const team = e.team_name ? `<em>${escHtml(e.team_name)}</em>` : 'Una squadra';
+      const code = e.challenge_code ? `<span class="fl">${escHtml(e.challenge_code)}</span>` : 'una sfida';
+      const nem = e.new_integrity !== null && e.new_integrity !== undefined ? ` — NEMESIS ${e.new_integrity}%` : '';
+      msg = `${team} ha conquistato ${code}${nem}`;
+    } else {
+      msg = escHtml(e.message || e.type || 'evento');
+    }
+    return `<div class="log-item"><span class="log-t">${t}</span><span class="log-m">${msg}</span></div>`;
+  }).join('');
+}
+
+function renderChallengeGrid({ challenges, total_solved, total_challenges, team_solved_challenges, selected_team_id, selected_team_name, is_competitive }) {
+  const titleEl = document.getElementById('ch-grid-title');
+  const grid = document.getElementById('ch-grid-spec');
+  if (!titleEl || !grid) return;
+  if (!challenges || !challenges.length) {
+    titleEl.textContent = `Stato sfide — 0 / ${total_challenges || 0} risolte`;
+    grid.innerHTML = '<div style="color:var(--muted2);font-size:11px;font-family:var(--mono)">Nessuna sfida caricata.</div>';
+    return;
+  }
+
+  let solvedSet = null;
+  let solvedCount = total_solved || 0;
+  if (is_competitive && Number.isInteger(selected_team_id) && selected_team_id > 0) {
+    solvedSet = new Set((team_solved_challenges && team_solved_challenges[selected_team_id]) || []);
+    solvedCount = solvedSet.size;
+    titleEl.textContent = `Stato sfide — ${solvedCount} / ${total_challenges || 0} risolte · ${selected_team_name || 'Squadra'}`;
+  } else {
+    titleEl.textContent = `Stato sfide — ${total_solved || 0} / ${total_challenges || 0} risolte`;
+  }
+
+  grid.innerHTML = challenges.map((c) => {
+    const col = CAT_COLOR[c.category] || '#7a95b0';
+    const solved = solvedSet ? solvedSet.has(c.id) : !!c.is_solved;
+    return `<div class="ch-mini ${solved ? 'solved' : ''}" style="--c:${col}">
+      <div class="ch-mini-id">${escHtml(c.code || '—')}</div>
+      <div class="ch-mini-pts">${solved ? '✓' : c.base_points + 'pt'}</div>
+    </div>`;
+  }).join('');
+}
+
+function focusTeamView(userId, teamName, integrityPct, emotionalState) {
+  _selectedTeamViewId = Number(userId) || null;
+  _selectedTeamViewName = String(teamName || '').trim() || 'Squadra';
+  focusTeamNemesis(integrityPct, emotionalState);
+  if (_lastSpectatorData) {
+    const d = _lastSpectatorData;
+    renderChallengeGrid({
+      challenges: d.challenges || [],
+      total_solved: d.total_solved || 0,
+      total_challenges: d.total_challenges || 0,
+      team_solved_challenges: d.team_solved_challenges || {},
+      selected_team_id: _selectedTeamViewId,
+      selected_team_name: _selectedTeamViewName,
+      is_competitive: d.session?.mode === 'competitive',
+    });
+  }
+}
+
+/* → focusTeamNemesis estratta in Nemesis/nemesis.js */
+
+/* ============================================================
+   COUNTDOWN TIMER
+   ============================================================ */
+function startCountdown() {
+  if (_countdownTimer) clearInterval(_countdownTimer);
+  const el = document.getElementById('spec-timer');
+  _countdownTimer = setInterval(() => {
+    if (!_spectatorStartedAt) { el.textContent = '—'; return; }
+    const elapsed = Math.floor((Date.now() - new Date(_spectatorStartedAt)) / 1000);
+    const rem     = Math.max(0, _spectatorDuration * 60 - elapsed);
+    el.textContent = fmtTimer(rem);
+    el.style.color = rem < 300 ? 'var(--red)' : 'var(--green)';
+    if (rem === 0) {
+      el.style.color = 'var(--muted)';
+      if (_countdownTimer) { clearInterval(_countdownTimer); _countdownTimer = null; }
+    }
+  }, 1000);
+}
+
+/* ============================================================
+   SPECTATOR POLLING
+   ============================================================ */
+function startSpectatorPoll() {
+  stopSpectatorPoll();
+  _spectatorPollTimer = setInterval(loadSpectator, 15000);
+}
+function stopSpectatorPoll() {
+  if (_spectatorPollTimer) { clearInterval(_spectatorPollTimer); _spectatorPollTimer = null; }
+}
+
+/* ============================================================
+   HTML ESCAPE
+   ============================================================ */
+function escHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+if (window.NEMESIS && typeof window.NEMESIS.configureView === 'function') {
+  const qs = new URLSearchParams(window.location.search);
+  const nemesisBigTab = qs.get('nemesis') === '1';
+  window.NEMESIS.configureView({
+    role: 'admin',
+    audioEnabled: true,
+    typingSoundEnabled: nemesisBigTab,
+  });
+}
+initOrbs();
+checkAuth();
+loadSessions();
+loadUsers();
+
+document.querySelectorAll('.color-dot').forEach((dot) => {
+  dot.addEventListener('click', () => {
+    const color = dot.dataset.color;
+    document.getElementById('new-user-color').value = color;
+    document.querySelectorAll('.color-dot').forEach((d) => { d.style.border = 'none'; });
+    dot.style.border = '2px solid #fff';
+  });
+});
+// Refresh sessions list every 30s
+setInterval(() => {
+  if (document.getElementById('page-sessions').classList.contains('active')) {
+    loadSessions();
+  }
+}, 30000);
+</script>
+</body>
+</html>

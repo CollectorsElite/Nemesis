@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REV-02 Arithmetic</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0a1628; color:#e2e8f0; margin:0; display:grid; place-items:center; min-height:100vh; }
+    .card { width:min(500px,92vw); background:#111c2d; border:1px solid #1e3a55; border-radius:12px; padding:20px; }
+    pre { background:#060e1a; border:1px solid #1e3a55; border-radius:8px; padding:12px; color:#7fff7f; overflow:auto; }
+    input,button { width:100%; padding:10px; margin-top:10px; border-radius:8px; border:1px solid #334155; }
+    button { background:#e74c3c; color:#fff; border:none; font-weight:700; cursor:pointer; }
+    #out { margin-top:12px; font-family:Consolas,monospace; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3>REV-02 — Aritmetica JS</h3>
+    <pre>if (((n ^ 0x2A) + 0x10) === 0x73) { /* OK */ }</pre>
+    <input id="n" type="number" placeholder="Numero intero">
+    <button id="btn">Verifica</button>
+    <div id="out"></div>
+  </div>
+  <script>
+    document.getElementById('btn').onclick = () => {
+      const n = parseInt(document.getElementById('n').value, 10);
+      const out = document.getElementById('out');
+      if (!Number.isInteger(n)) { out.textContent = 'Numero non valido.'; out.style.color = '#e74c3c'; return; }
+      if (((n ^ 0x2A) + 0x10) === 0x73) {
+        out.textContent = 'FLAG[j4vascr1pt_l0g1c_ok]';
+        out.style.color = '#2ecc71';
+      } else {
+        out.textContent = 'Errato.';
+        out.style.color = '#e74c3c';
+      }
+    };
+  </script>
+</body>
+</html>

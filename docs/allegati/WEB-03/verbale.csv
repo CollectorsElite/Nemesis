@@ -1,0 +1,4 @@
+Controllo;Esito;Rilievo
+Validazione form;Il browser controlla il formato email;input_format
+Accesso area riservata;La decisione è affidata solo al browser;h1dd3n_js_1n_html
+Registro accessi;Il server registra esiti e orari;audit_ready

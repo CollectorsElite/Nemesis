@@ -1,0 +1,7 @@
+.git
+.env
+data
+*.sqlite*
+
+# Soluzioni riservate allo staff: non pubblicare
+docs/Soluzioni-staff.md

@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escalation CTF — Partita</title>
+<link rel="stylesheet" href="/Nemesis/nemesis.css">
+<style>
+:root {
+  --navy:   #0d1f33; --navy2: #152f4e; --navy3: #1c3d63;
+  --border: #1e3a55; --orange: #d86e33; --orange2: #e8813d;
+  --white:  #ffffff; --off: #e8edf2; --muted: #7a95b0; --muted2: #4a6580;
+  --green:  #2ecc71; --red: #e74c3c; --yellow: #f1c40f;
+  --blue:   #5dade2; --purple: #9b59b6;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Barlow', sans-serif;
+  --cond: 'Barlow Condensed', sans-serif;
+  --cat-web: #5dade2; --cat-crypto: #f1c40f; --cat-for: #2ecc71;
+  --cat-rev: #e74c3c; --cat-osint: #9b59b6;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { font-family: var(--sans); font-size: 15px; background: var(--navy); color: var(--off); display: flex; flex-direction: column; }
+body::before { content:''; position:fixed; inset:0; background: radial-gradient(ellipse at 20% 50%,#1c3d6318 0%,transparent 55%), radial-gradient(ellipse at 80% 15%,#d86e3310 0%,transparent 45%); pointer-events:none; z-index:0; }
+body::after { content:''; position:fixed; inset:0; background-image: linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
+
+/* ── HEADER ── */
+.header { position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:52px; background:rgba(13,31,51,.95); border-bottom:1px solid var(--border); flex-shrink:0; }
+.header-left { display:flex; align-items:center; gap:14px; min-width: 0; }
+.header-logos { display:flex; align-items:center; gap:12px; min-width:0; }
+.header-logo-its { height:22px; width:auto; display:block; opacity:.95; }
+.header-logo-divider { width:1px; height:28px; background:var(--border); }
+.header-logo-bespoke { height:30px; width:auto; display:block; }
+.header-tag { font-family:var(--mono); font-size:10px; color:var(--muted); border:1px solid var(--border); padding:3px 10px; border-radius:3px; letter-spacing:1px; }
+.header-right { display:flex; align-items:center; gap:10px; }
+.user-badge { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11px; color:var(--green); border:1px solid rgba(46,204,113,.3); padding:4px 10px; border-radius:3px; }
+.dot-green { width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.dev-badge { font-family:var(--mono); font-size:9px; color:var(--orange); border:1px solid rgba(216,110,51,.4); padding:3px 8px; border-radius:3px; letter-spacing:1px; text-transform:uppercase; }
+.header-timer { min-width:102px; text-align:center; border:1px solid var(--border); border-radius:4px; padding:3px 8px; background:rgba(13,31,51,.55); }
+.header-timer-label { font-family:var(--mono); font-size:8px; letter-spacing:1px; color:var(--muted2); text-transform:uppercase; }
+.header-timer-value { font-family:var(--mono); font-size:14px; letter-spacing:1px; color:var(--green); }
+
+/* ── LAYOUT ── */
+.layout { display:flex; flex:1; overflow:hidden; position:relative; z-index:1; }
+
+/* ── SIDEBAR ── */
+.sidebar { width:230px; flex-shrink:0; background:rgba(13,31,51,.85); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow-y:auto; }
+.sidebar-section { padding:12px 0; border-bottom:1px solid var(--border); }
+.sidebar-label { font-family:var(--cond); font-size:10px; font-weight:700; letter-spacing:2px; color:var(--muted2); text-transform:uppercase; padding:0 16px; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+.sidebar-label .count { font-size:10px; color:var(--muted); }
+.ch-item { display:flex; align-items:center; gap:8px; padding:7px 16px; cursor:pointer; font-size:13px; color:var(--muted); transition:all .15s; border-left:2px solid transparent; position:relative; }
+.ch-item:hover { color:var(--off); background:rgba(255,255,255,.03); }
+.ch-item.active { color:var(--off); background:rgba(255,255,255,.05); border-left-color:var(--cat-color, var(--orange)); }
+.ch-item.solved { color:var(--green) !important; }
+.ch-item .ch-code { font-family:var(--mono); font-size:10px; color:var(--cat-color,var(--muted)); min-width:60px; }
+.ch-item .ch-name { flex:1; font-size:12px; line-height:1.3; }
+.ch-item .solved-mark { font-size:11px; color:var(--green); }
+.ch-item .pts { font-family:var(--mono); font-size:10px; color:var(--muted2); }
+.sidebar-stats { padding:12px 16px; }
+.progress-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.progress-label { font-family:var(--mono); font-size:10px; color:var(--muted); flex:1; }
+.progress-val { font-family:var(--mono); font-size:11px; color:var(--orange); }
+.progress-bar { height:3px; background:var(--border); border-radius:2px; margin-bottom:10px; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--orange),var(--orange2)); border-radius:2px; transition:width .5s; }
+.reset-btn { width:100%; padding:7px; background:rgba(231,76,60,.1); border:1px solid rgba(231,76,60,.3); border-radius:6px; color:var(--red); font-family:var(--cond); font-size:11px; letter-spacing:1px; cursor:pointer; transition:all .15s; }
+.reset-btn:hover { background:rgba(231,76,60,.2); }
+.sidebar-title {
+  font-family: var(--cond);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--off);
+  padding: 10px 16px 8px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── MAIN ── */
+.main { flex:1; overflow-y:auto; padding:24px 28px; }
+.welcome { text-align:center; padding:60px 20px; }
+.welcome-title { font-family:var(--cond); font-size:36px; font-weight:900; letter-spacing:2px; color:var(--white); margin-bottom:8px; }
+.welcome-title span { color:var(--orange); }
+.welcome-sub { font-size:14px; color:var(--muted); margin-bottom:24px; }
+.welcome-stats { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; }
+.w-stat { background:rgba(21,47,78,.5); border:1px solid var(--border); border-radius:10px; padding:16px 24px; text-align:center; }
+.w-stat-val { font-family:var(--mono); font-size:28px; color:var(--orange); font-weight:700; }
+.w-stat-label { font-family:var(--cond); font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-top:4px; }
+
+/* ── CHALLENGE VIEW ── */
+.ch-view { max-width:820px; }
+.ch-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; gap:16px; }
+.ch-code-big { font-family:var(--mono); font-size:12px; color:var(--muted); letter-spacing:2px; margin-bottom:6px; }
+.ch-title-big { font-family:var(--cond); font-size:30px; font-weight:900; color:var(--white); margin-bottom:10px; line-height:1.1; }
+.ch-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:3px; font-family:var(--mono); font-size:10px; letter-spacing:1px; text-transform:uppercase; }
+.badge-cat-WEB     { background:rgba(93,173,226,.12); color:var(--cat-web);    border:1px solid rgba(93,173,226,.3); }
+.badge-cat-CRYPTO  { background:rgba(241,196,15,.12); color:var(--cat-crypto); border:1px solid rgba(241,196,15,.3); }
+.badge-cat-FORENSICS { background:rgba(46,204,113,.12); color:var(--cat-for); border:1px solid rgba(46,204,113,.3); }
+.badge-cat-REVERSE { background:rgba(231,76,60,.12);  color:var(--cat-rev);   border:1px solid rgba(231,76,60,.3); }
+.badge-cat-OSINT   { background:rgba(155,89,182,.12); color:var(--cat-osint); border:1px solid rgba(155,89,182,.3); }
+.badge-easy   { background:rgba(46,204,113,.1);  color:var(--green);  border:1px solid rgba(46,204,113,.3); }
+.badge-medium { background:rgba(241,196,15,.1);  color:var(--yellow); border:1px solid rgba(241,196,15,.3); }
+.badge-hard   { background:rgba(231,76,60,.1);   color:var(--red);    border:1px solid rgba(231,76,60,.3); }
+.badge-pts    { background:rgba(216,110,51,.1);  color:var(--orange); border:1px solid rgba(216,110,51,.3); }
+.badge-solved-big { background:rgba(46,204,113,.15); color:var(--green); border:1px solid rgba(46,204,113,.4); font-size:12px; padding:5px 14px; }
+
+/* ── PANEL ── */
+.panel { background:rgba(21,47,78,.4); border:1px solid var(--border); border-radius:12px; margin-bottom:16px; overflow:hidden; }
+.panel-header { padding:10px 18px; border-bottom:1px solid var(--border); background:rgba(13,31,51,.4); }
+.panel-title { font-family:var(--cond); font-size:11px; font-weight:700; letter-spacing:2px; color:var(--muted); text-transform:uppercase; }
+.panel-body { padding:18px 20px; }
+.ch-desc { font-size:14px; line-height:1.8; color:var(--off); }
+.ch-desc p { margin-bottom:10px; }
+.ch-desc strong { color:var(--orange); font-weight:600; }
+.ch-desc code { font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.06); padding:1px 5px; border-radius:3px; color:var(--blue); }
+
+/* Terminal block */
+.terminal { background:#060e1a; border:1px solid var(--border); border-radius:8px; padding:14px 16px; font-family:var(--mono); font-size:12px; color:#7fff7f; line-height:1.7; white-space:pre-wrap; word-break:break-all; margin-top:10px; }
+.terminal-label { font-family:var(--cond); font-size:10px; letter-spacing:2px; color:var(--muted2); text-transform:uppercase; margin-bottom:6px; }
+
+/* Attachment */
+.attachment-row { display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(216,110,51,.06); border:1px solid rgba(216,110,51,.2); border-radius:8px; margin-bottom:16px; }
+.attachment-icon { font-size:20px; }
+.attachment-info { flex:1; }
+.attachment-name { font-family:var(--mono); font-size:13px; color:var(--orange); }
+.attachment-note { font-size:11px; color:var(--muted); margin-top:2px; }
+.btn-download { padding:7px 16px; background:var(--orange); border:none; border-radius:6px; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:1px; color:#fff; cursor:pointer; text-decoration:none; display:inline-block; transition:background .15s; }
+.btn-download:hover { background:var(--orange2); }
+.btn-open { padding:7px 16px; background:rgba(93,173,226,.15); border:1px solid rgba(93,173,226,.3); border-radius:6px; font-family:var(--cond); font-size:12px; font-weight:700; letter-spacing:1px; color:var(--blue); cursor:pointer; text-decoration:none; display:inline-block; transition:all .15s; }
+.btn-open:hover { background:rgba(93,173,226,.25); }
+
+/* Flag form */
+.flag-section { display:flex; flex-direction:column; gap:10px; }
+.flag-row { display:flex; gap:8px; }
+.flag-input { flex:1; background:#060e1a; border:1px solid var(--border); border-radius:8px; padding:12px 16px; font-family:var(--mono); font-size:14px; color:var(--orange); outline:none; letter-spacing:1px; transition:border-color .2s; }
+.flag-input:focus { border-color:var(--orange); box-shadow:0 0 0 3px rgba(216,110,51,.12); }
+.flag-input.err { border-color:var(--red); box-shadow:0 0 0 3px rgba(231,76,60,.12); }
+.flag-input.ok  { border-color:var(--green); box-shadow:0 0 0 3px rgba(46,204,113,.12); }
+.btn-submit { padding:12px 24px; background:var(--orange); border:none; border-radius:8px; font-family:var(--cond); font-size:13px; font-weight:700; letter-spacing:2px; color:#fff; cursor:pointer; transition:all .15s; text-transform:uppercase; white-space:nowrap; }
+.btn-submit:hover { background:var(--orange2); transform:translateY(-1px); }
+.flag-feedback { font-family:var(--mono); font-size:13px; padding:10px 14px; border-radius:6px; display:none; }
+.flag-feedback.ok  { background:rgba(46,204,113,.1);  border:1px solid rgba(46,204,113,.3);  color:var(--green); display:block; }
+.flag-feedback.err { background:rgba(231,76,60,.1);   border:1px solid rgba(231,76,60,.3);   color:var(--red);   display:block; }
+.attempts-label { font-family:var(--mono); font-size:10px; color:var(--muted2); }
+
+/* Hints */
+.hint-list { display:flex; flex-direction:column; gap:8px; }
+.hint-row { border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+.hint-trigger { width:100%; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:rgba(13,31,51,.6); cursor:pointer; border:none; color:var(--muted); font-family:var(--sans); font-size:13px; transition:all .15s; }
+.hint-trigger:hover { background:rgba(13,31,51,.9); color:var(--off); }
+.hint-trigger .ht-left { display:flex; align-items:center; gap:8px; }
+.hint-trigger .ht-num { font-family:var(--mono); font-size:11px; color:var(--yellow); }
+.hint-trigger .ht-cost { font-family:var(--mono); font-size:10px; color:var(--red); }
+.hint-trigger .ht-status { font-size:10px; font-family:var(--mono); }
+.hint-trigger .ht-status.used { color:var(--yellow); }
+.hint-trigger .ht-status.locked { color:var(--muted2); }
+.hint-body { display:none; padding:12px 14px; background:rgba(241,196,15,.04); border-top:1px solid rgba(241,196,15,.2); font-size:13px; color:var(--yellow); line-height:1.6; font-family:var(--mono); }
+.hint-body.show { display:block; }
+.hint-body code { color:var(--blue); }
+
+/* Solved overlay */
+.solved-banner { background:rgba(46,204,113,.08); border:1px solid rgba(46,204,113,.3); border-radius:10px; padding:16px 20px; margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+.solved-icon { font-size:24px; }
+.solved-text { font-family:var(--cond); font-size:16px; font-weight:700; color:var(--green); }
+.solved-sub { font-size:12px; color:var(--muted); margin-top:2px; font-family:var(--mono); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ── NEMESIS SIDE PANEL (layout only, visual from nemesis.css) ── */
+.nemesis-side-panel {
+  position: fixed;
+  right: 22px;
+  top: 88px;
+  width: 230px;
+  z-index: 30;
+}
+.nemesis-side-panel .nemesis-widget {
+  margin: 0;
+}
+.nemesis-side-panel .nem-msg {
+  max-height: none;
+  overflow: visible;
+  display: block;
+  line-clamp: unset;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: initial;
+}
+</style>
+<link rel="icon" href="/assets/escalation-segno.svg"><link rel="stylesheet" href="/assets/suite.css">
+<script defer src="/assets/suite.js"></script>
+</head>
+<body class="screen-sfide">
+
+<header class="header">
+  <div class="header-left">
+    <div class="suite-brand" aria-label="Escalation CTF"><img class="suite-mark" src="/assets/escalation-segno.svg" alt=""><img class="suite-name" src="/assets/escalation-nome.svg" alt="Escalation"><b>CTF</b></div>
+    <div class="header-tag">PARTITA IN CORSO</div>
+  </div>
+  <div class="header-right">
+    <div class="header-timer">
+      <div class="header-timer-label">tempo rimanente</div>
+      <div class="header-timer-value" id="header-timer-value">--:--:--</div>
+    </div>
+    <div class="user-badge"><div class="dot-green"></div>Squadra — 0 pt</div>
+  </div>
+</header>
+
+<aside class="nemesis-side-panel">
+  <div class="nemesis-widget">
+    <div class="nem-label">◈ NEMESIS // INTEGRITÀ</div>
+    <div id="nem-mode-tag"></div>
+    <div class="nem-canvas-wrap">
+      <canvas id="nem-canvas-small" width="120" height="120"></canvas>
+    </div>
+    <div class="nem-bar-wrap">
+      <div class="nem-bar-track"><div class="nem-bar-fill" id="nem-bar-small"></div></div>
+    </div>
+    <div class="nem-integrity" id="nem-integrity-small">—</div>
+    <div class="nem-state-label" id="nem-state-small">—</div>
+    <div class="nem-msg" id="nem-msg-small"></div>
+  </div>
+</aside>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-stats">
+      <div class="progress-row">
+        <div class="progress-label">Sfide risolte</div>
+        <div class="progress-val" id="solved-count">0 / 0</div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-row">
+        <div class="progress-label">Punteggio</div>
+        <div class="progress-val" id="score-val">0 pt</div>
+      </div>
+      <button class="reset-btn" onclick="resetAll()">↶ Torna al riepilogo</button>
+    </div>
+
+    <div class="sidebar-title">Catalogo sfide</div>
+    <div class="search-wrap"><input id="challenge-search" type="search" aria-label="Cerca per titolo, codice o categoria" placeholder="Cerca una sfida…" oninput="filterChallenges()"></div>
+    <p id="search-empty" hidden>Nessuna sfida trovata.</p>
+    <div id="sidebar-categories"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main-area">
+    <div class="welcome" id="welcome-screen">
+      <div class="welcome-title">Operazione <span>NEMESIS</span></div>
+      <div class="welcome-sub">Scegli una sfida dal catalogo della sessione.</div>
+      <div class="welcome-stats">
+        <div class="w-stat"><div class="w-stat-val">—</div><div class="w-stat-label">Sfide totali</div></div>
+        <div class="w-stat"><div class="w-stat-val">—</div><div class="w-stat-label">Categorie</div></div>
+        <div class="w-stat"><div class="w-stat-val">—</div><div class="w-stat-label">Punti max</div></div>
+      </div>
+    </div>
+    <div id="ch-area" style="display:none" class="ch-view"></div>
+  </main>
+
+</div>
+
+<script src="/Nemesis/nemesis-preset.js"></script>
+<script src="/Nemesis/orb.js"></script><script src="/Nemesis/nemesis.js"></script>
+<script>
+// ── SHA-256 (Web Crypto API) ──────────────────────────────────
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── NEMESIS MESSAGES (allineato a spectator/admin) ───────────
+const _SF_NEM_PRESET = window.NEMESIS_PRESET || {};
+const _SF_NEM_PRESET_SET =
+  (_SF_NEM_PRESET.interactionSets &&
+    _SF_NEM_PRESET.activeInteractionSet &&
+    _SF_NEM_PRESET.interactionSets[_SF_NEM_PRESET.activeInteractionSet]) || null;
+const _SF_NEM_PRESET_MSG = (_SF_NEM_PRESET_SET && _SF_NEM_PRESET_SET.messages) || {};
+const _DEFAULT_NEM_STATE_LABELS = {
+  dominant: 'DOMINANTE',
+  vigilant: 'VIGILE',
+  alarmed: 'ALLARMATO',
+  under_attack: 'SOTTO ATTACCO',
+  defeated: 'SCONFITTO',
+};
+const _DEFAULT_NEM_MSG = {
+  state: {
+    dominant: [
+      'NEMESIS stabile. Integrità {integrity}%.',
+      'Sistema dominante. Stato: {stateLabel}.',
+      'Core saldo. Continuate pure.',
+    ],
+    vigilant: [
+      'Rilevate intrusioni. Integrità al {integrity}%.',
+      'NEMESIS vigile. Pressione in aumento.',
+      'Monitoraggio intensificato. Stato: {stateLabel}.',
+    ],
+    alarmed: [
+      'Soglia critica superata: integrità {integrity}%.',
+      'Allarme operativo. Stato: {stateLabel}.',
+      'Core stressato. Il margine si riduce.',
+    ],
+    under_attack: [
+      'Sotto attacco diretto. Integrità {integrity}%.',
+      'Fase critica: ogni flag pesa di più.',
+      'Sistema instabile. Stato: {stateLabel}.',
+    ],
+    defeated: [
+      'NEMESIS compromesso. Integrità {integrity}%.',
+      'Core neutralizzato. Stato: {stateLabel}.',
+      'Difese collassate. Vantaggio umano.',
+    ],
+  },
+  correct: [
+    'Evento confermato. Flag valida.',
+    'Conferma ricevuta: impatto sul core registrato.',
+    'Corretto. Avanzamento autorizzato.',
+  ],
+  wrong: [
+    'Tentativo respinto. Flag errata.',
+    'Non corrisponde. Ricalibra il vettore.',
+    'Errore rilevato. Verifica la catena logica.',
+  ],
+  wrong_streak: [
+    'Ancora errato. Forse stai seguendo una pista sbagliata.',
+    'Secondo errore consecutivo: rileggi scenario e indizi.',
+    'Persistenza apprezzata, accuratezza meno.',
+  ],
+};
+const _NEM_STATE_LABELS = _SF_NEM_PRESET.stateLabels || _DEFAULT_NEM_STATE_LABELS;
+const _NEM_MSG = {
+  state: _SF_NEM_PRESET_MSG.state || {},
+  challenge_complete: _SF_NEM_PRESET_MSG.challenge_complete || null,
+  correct: _SF_NEM_PRESET_MSG.correct || [],
+  wrong: _SF_NEM_PRESET_MSG.wrong || [],
+  wrong_streak: _SF_NEM_PRESET_MSG.wrong_streak || [],
+};
+const _wrongStreak = {};
+let _lastNemesisSpeechAt = 0;
+let _nemesisSpeechRotator = null;
+const _nemUsedIdxByPool = new Map();
+const _nemOrderIdxByPool = new Map();
+
+function _randFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function _nemShuffledIndices(n) {
+  const arr = Array.from({ length: n }, (_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = arr[i];
+    arr[i] = arr[j];
+    arr[j] = t;
+  }
+  return arr;
+}
+function _nemPickUnique(poolKey, pool, ctx) {
+  if (!Array.isArray(pool) || !pool.length) return '';
+  const resolveText = (entry) => {
+    if (typeof entry === 'string') return entry;
+    if (entry && typeof entry === 'object') return String(entry.text || '');
+    return '';
+  };
+  if (!_nemUsedIdxByPool.has(poolKey)) _nemUsedIdxByPool.set(poolKey, new Set());
+  if (!_nemOrderIdxByPool.has(poolKey)) _nemOrderIdxByPool.set(poolKey, _nemShuffledIndices(pool.length));
+  const used = _nemUsedIdxByPool.get(poolKey);
+  const order = _nemOrderIdxByPool.get(poolKey);
+  while (order.length) {
+    const idx = order.shift();
+    if (used.has(idx)) continue;
+    used.add(idx);
+    return _fmtNem(resolveText(pool[idx]), ctx);
+  }
+  _nemUsedIdxByPool.set(poolKey, new Set());
+  _nemOrderIdxByPool.set(poolKey, _nemShuffledIndices(pool.length));
+  const idx = _nemOrderIdxByPool.get(poolKey).shift();
+  _nemUsedIdxByPool.get(poolKey).add(idx);
+  return _fmtNem(resolveText(pool[idx]), ctx);
+}
+function _nemCtxFromState() {
+  const nem = gameState.nemesis || {};
+  const integrity = Math.max(0, Math.min(100, nem.integrity_pct ?? 100));
+  const st = nem.emotional_state || 'dominant';
+  return {
+    integrity,
+    state: st,
+    stateLabel: _NEM_STATE_LABELS[st] || String(st).toUpperCase(),
+  };
+}
+function _fmtNem(template, ctx) {
+  return template
+    .replace(/\{integrity\}/g, String(ctx.integrity))
+    .replace(/\{stateLabel\}/g, String(ctx.stateLabel))
+    .replace(/\{team\}/g, String(ctx.team || gameState.me?.team_name || 'Squadra'))
+    .replace(/\{teams\}/g, String(ctx.teams || gameState.me?.team_name || 'Squadra'))
+    .replace(/\{gameName\}/g, String(ctx.gameName || 'NEMESIS CTF'))
+    .replace(/\{challengeCode\}/g, String(ctx.challengeCode || currentCode || 'sfida'));
+}
+
+function showNemesisMessage(text, kind = 'event') {
+  const el = document.getElementById('nem-msg-small');
+  const nem = window.NEMESIS;
+  if (nem) {
+    if (kind === 'challenge_complete' && typeof nem.success === 'function') nem.success(text);
+    else if (kind === 'wrong_streak' && typeof nem.mock === 'function') nem.mock(text);
+    else if (kind === 'wrong' && typeof nem.alert === 'function') nem.alert(text);
+    else if (typeof nem.speakBubble === 'function') nem.speakBubble(text, 4200);
+    else if (el) {
+      el.classList.remove('show');
+      void el.offsetWidth;
+      el.textContent = '\u201c' + text + '\u201d';
+      el.classList.add('show');
+    }
+  } else if (el) {
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.textContent = '\u201c' + text + '\u201d';
+    el.classList.add('show');
+  }
+  _lastNemesisSpeechAt = Date.now();
+}
+
+function getNemesisMessage(cat, correct, streak, overrideTeam, overrideCode) {
+  const team = overrideTeam || gameState.me?.team_name || 'Squadra';
+  const code = overrideCode || currentCode || (cat ? `${cat}-??` : 'sfida');
+  const st = gameState.nemesis?.emotional_state || 'dominant';
+  const ctx = { ..._nemCtxFromState(), team, challengeCode: code };
+  if (correct) {
+    const byPhase = (_NEM_MSG.challenge_complete && _NEM_MSG.challenge_complete[st]) || _NEM_MSG.correct;
+    return _nemPickUnique(`challenge_complete:${st}`, byPhase, ctx);
+  }
+  const wrongPool = (Array.isArray(_NEM_MSG.wrong) ? _NEM_MSG.wrong : ((_NEM_MSG.wrong && _NEM_MSG.wrong[st]) || []));
+  const wrongStreakPool = (Array.isArray(_NEM_MSG.wrong_streak) ? _NEM_MSG.wrong_streak : ((_NEM_MSG.wrong_streak && _NEM_MSG.wrong_streak[st]) || []));
+  if (streak >= 2) {
+    return _nemPickUnique(`wrong_streak:${st}:${code}`, wrongStreakPool, ctx);
+  }
+  return _nemPickUnique(`wrong:${st}:${code}`, wrongPool, ctx);
+}
+
+function getNemesisStateMessage() {
+  const ctx = _nemCtxFromState();
+  const pool = _NEM_MSG.state[ctx.state] || _NEM_MSG.state.dominant;
+  return _nemPickUnique(`state:${ctx.state}`, pool, ctx);
+}
+
+function startNemesisSpeechRotation() {
+  // Rotazione ambient gestita dal runtime condiviso in nemesis.js
+}
+
+// ── DATI SFIDE ───────────────────────────────────────────────
+const CAT_COLOR = {
+  WEB:'var(--cat-web)',
+  CRYPTO:'var(--cat-crypto)',
+  FORENSICS:'var(--cat-for)',
+  REVERSE:'var(--cat-rev)',
+  OSINT:'var(--cat-osint)',
+  ENCODING:'#64b5f6',
+  PHISHING:'#f39c12',
+  HASH:'#1abc9c',
+  NETWORK:'#9b59b6',
+};
+const CAT_LABEL = {
+  WEB:'Web',
+  CRYPTO:'Crypto',
+  FORENSICS:'Forensics',
+  REVERSE:'Reverse',
+  OSINT:'Osint',
+  ENCODING:'Encoding',
+  PHISHING:'Phishing',
+  HASH:'Hash',
+  NETWORK:'Network',
+};
+
+// ── STATO ────────────────────────────────────────────────────
+const API = '';
+const HINT_COSTS = [1, 1, 2];
+let gameState = {
+  session: null,
+  me: null,
+  nemesis: { integrity_pct: 100, emotional_state: 'dominant' },
+  challenges: [],
+};
+let gamePollTimer = null;
+let gameTimerTick = null;
+let _gameStateLoadPromise = null;
+let _isMutatingHint = false;
+const _seenEventIds = new Set();
+let _eventsBaselineInitialized = false;
+let _timeLostTriggered = false;
+let serverClockOffset = 0;
+
+function totalSolved()  { return gameState.challenges.filter((c) => c.solved).length; }
+function totalScore()   { return Number(gameState.me?.score || 0); }
+function catSolved(cat) { return gameState.challenges.filter((c) => c.cat===cat && c.solved).length; }
+function catTotal(cat)  { return gameState.challenges.filter((c) => c.cat===cat).length; }
+
+async function apiJson(url, opts = {}) {
+  const res = await fetch(API + url, {
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    ...opts,
+  });
+  if (res.status === 401) {
+    window.location.href = '/login.html';
+    return null;
+  }
+  return { status: res.status, data: await res.json() };
+}
+
+function updateNemesisFromState() {
+  const nem = gameState.nemesis || {};
+  const pct = Math.max(0, Math.min(100, nem.integrity_pct ?? 100));
+  const st = nem.emotional_state || 'dominant';
+  if (typeof updateNemesisUI === 'function') {
+    const snapshot = {
+      sessionName: gameState.session?.name || 'NEMESIS CTF',
+      sessionStatus: gameState.session?.status || 'active',
+      sessionMode: gameState.session?.mode || 'coop',
+      scoreboard: gameState.me ? [{
+        team_name: gameState.me.team_name || 'Squadra',
+        score: Number(gameState.me.score || 0),
+        challenges_solved: totalSolved(),
+      }] : [],
+      challenges: (gameState.challenges || []).map((c) => ({
+        code: c.code,
+        is_solved: !!c.solved,
+      })),
+      total_solved: totalSolved(),
+      total_challenges: (gameState.challenges || []).length,
+    };
+    try {
+      // In competitive il last_message server è globale di sessione: non usarlo come
+      // sorgente parlata persistente. Gli eventi degli altri team arrivano già via
+      // showNemesisMessage() in loadGameState(), quindi non si perde nulla.
+      const isCompetitive = gameState.session?.mode === 'competitive';
+      updateNemesisUI(
+        { integrity_pct: pct, emotional_state: st, last_message: isCompetitive ? null : (nem.last_message || null) },
+        gameState.session?.mode || 'coop',
+        snapshot
+      );
+    } catch (_err) {
+      const fill = document.getElementById('nem-bar-small');
+      const stEl = document.getElementById('nem-state-small');
+      const intEl = document.getElementById('nem-integrity-small');
+      if (fill) {
+        fill.style.width = `${pct}%`;
+        fill.style.background = pct >= 75
+          ? 'linear-gradient(90deg,var(--orange),var(--orange2))'
+          : pct >= 40
+            ? 'linear-gradient(90deg,#e8813d,#f1c40f)'
+            : 'linear-gradient(90deg,var(--red),#c0392b)';
+      }
+      if (intEl) intEl.textContent = `${pct}% integrità`;
+      if (stEl) stEl.textContent = _NEM_STATE_LABELS[st] || st;
+    }
+  } else {
+    const fill = document.getElementById('nem-bar-small');
+    const stEl = document.getElementById('nem-state-small');
+    const intEl = document.getElementById('nem-integrity-small');
+    if (fill) {
+      fill.style.width = `${pct}%`;
+      fill.style.background = pct >= 75
+        ? 'linear-gradient(90deg,var(--orange),var(--orange2))'
+        : pct >= 40
+          ? 'linear-gradient(90deg,#e8813d,#f1c40f)'
+          : 'linear-gradient(90deg,var(--red),#c0392b)';
+    }
+    if (intEl) intEl.textContent = `${pct}% integrità`;
+    if (stEl) stEl.textContent = _NEM_STATE_LABELS[st] || st;
+  }
+}
+
+function updateHeaderTimer() {
+  const el = document.getElementById('header-timer-value');
+  if (!el) return;
+  const startedAt = gameState.session?.started_at;
+  const duration = Number(gameState.session?.duration_mins || 0);
+  if (!startedAt || !duration) {
+    el.textContent = '--:--:--';
+    return;
+  }
+  const endMs = new Date(startedAt).getTime() + duration * 60000;
+  const rem = Math.max(0, endMs - (Date.now() + serverClockOffset));
+  if (rem === 0 && !_timeLostTriggered) {
+    _timeLostTriggered = true;
+    apiJson('/api/game/time-expired', { method: 'POST' }).then(async result => {
+      if (result?.data?.ok) {
+        window.location.href = result.data.already_completed ? '/end.html' : '/lost.html';
+      } else {
+        await loadGameState();
+        _timeLostTriggered = false;
+      }
+    }).catch(() => { _timeLostTriggered = false; });
+    return;
+  }
+  const h = Math.floor(rem / 3600000);
+  const m = Math.floor((rem % 3600000) / 60000);
+  const s = Math.floor((rem % 60000) / 1000);
+  el.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// ── UI UTILS ─────────────────────────────────────────────────
+function diffLabel(d) { return d==='easy'?'Facile':d==='medium'?'Media':'Difficile'; }
+function hintCosts() { return [1,1,2]; }
+function escHtml(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+function catColor(cat) {
+  return CAT_COLOR[String(cat || '').toUpperCase()] || 'var(--orange)';
+}
+function catLabel(cat) {
+  const key = String(cat || '').toUpperCase();
+  return CAT_LABEL[key] || key;
+}
+
+function updateSidebar() {
+  const total = gameState.challenges.length;
+  const solved = totalSolved();
+  document.getElementById('solved-count').textContent = `${solved} / ${total}`;
+  document.getElementById('score-val').textContent = `${totalScore()} pt`;
+  const welcomeStats = document.querySelectorAll('#welcome-screen .w-stat-val');
+  if (welcomeStats[0]) welcomeStats[0].textContent = String(total);
+  if (welcomeStats[1]) {
+    const nCats = new Set(gameState.challenges.map((c) => c.cat)).size;
+    welcomeStats[1].textContent = String(nCats);
+  }
+  if (welcomeStats[2]) {
+    const maxPts = gameState.challenges.reduce((s, c) => s + Number(c.pts || 0), 0);
+    welcomeStats[2].textContent = String(maxPts);
+  }
+  document.getElementById('progress-fill').style.width = total ? (solved/total*100)+'%' : '0%';
+  const teamName = gameState.me?.team_name || 'Squadra';
+  const userBadge = document.querySelector('.user-badge');
+  if (userBadge) {
+    userBadge.innerHTML = '';
+    const dot = document.createElement('div');
+    dot.className = 'dot-green';
+    userBadge.appendChild(dot);
+    userBadge.appendChild(document.createTextNode(`${teamName} · ${totalScore()} pt`));
+  }
+  document.querySelectorAll('.cat-count').forEach((el) => {
+    const cat = el.dataset.cat;
+    el.textContent = `${catSolved(cat)}/${catTotal(cat)}`;
+  });
+  document.querySelectorAll('.ch-item').forEach(el => {
+    const code = el.dataset.code;
+    const ch = gameState.challenges.find((c) => c.code === code);
+    el.classList.toggle('solved', !!ch?.solved);
+    const mark = el.querySelector('.solved-mark');
+    if (mark) mark.textContent = ch?.solved ? '✓' : '';
+  });
+  updateNemesisFromState();
+}
+
+function filterChallenges() {
+  const query=document.getElementById('challenge-search').value.trim().toLocaleLowerCase('it');
+  let matches=0;
+  document.querySelectorAll('#sidebar-categories .sidebar-section').forEach(section=>{
+    let count=0;
+    section.querySelectorAll('.ch-item').forEach(item=>{
+      item.hidden=!(section.id+' '+item.textContent).toLocaleLowerCase('it').includes(query);
+      if (!item.hidden) count++;
+    });
+    section.hidden=!count;
+    matches+=count;
+  });
+  document.getElementById('search-empty').hidden=matches>0;
+}
+
+function buildSidebar() {
+  const host = document.getElementById('sidebar-categories');
+  if (!host) return;
+  host.innerHTML = '';
+  const orderedCats = [];
+  for (const ch of gameState.challenges) {
+    const cat = String(ch.cat || '').toUpperCase();
+    if (!cat || orderedCats.includes(cat)) continue;
+    orderedCats.push(cat);
+  }
+  orderedCats.forEach((cat) => {
+    const inSession = gameState.challenges.filter((c) => String(c.cat || '').toUpperCase() === cat);
+    if (!inSession.length) return;
+    const sec = document.createElement('div');
+    sec.className = 'sidebar-section';
+    sec.id = `sidebar-${cat}`;
+    sec.innerHTML = `<div class="sidebar-label" style="color:${catColor(cat)}">${escHtml(catLabel(cat))} <span class="count cat-count" data-cat="${escHtml(cat)}">0/0</span></div>`;
+    inSession.forEach((ch) => {
+      const div = document.createElement('button');
+      div.type = 'button';
+      div.className = 'ch-item';
+      div.dataset.code = ch.code;
+      div.style.setProperty('--cat-color', catColor(cat));
+      div.innerHTML = `<span class="ch-code">${escHtml(ch.code)}</span><span class="ch-name">${escHtml(ch.title)}</span><span class="solved-mark"></span><span class="pts">${Number(ch.pts || 0)}pt</span>`;
+      div.onclick = () => openChallenge(ch.code);
+      sec.appendChild(div);
+    });
+    host.appendChild(sec);
+  });
+}
+
+let currentCode = null;
+const _flagDraftByCode = {};
+
+function rememberFlagDraft(code, value) {
+  _flagDraftByCode[code] = String(value ?? '');
+}
+
+function openChallenge(code) {
+  currentCode = code;
+  document.querySelectorAll('.ch-item').forEach(el => el.classList.toggle('active', el.dataset.code===code));
+  document.getElementById('welcome-screen').style.display = 'none';
+  document.getElementById('ch-area').style.display = 'block';
+  renderChallenge(code);
+}
+
+function renderChallenge(code) {
+  const ch = gameState.challenges.find(c => c.code===code);
+  if (!ch) return;
+  const area = document.getElementById('ch-area');
+  const prevInp = document.getElementById(`flag-inp-${code}`);
+  if (prevInp) rememberFlagDraft(code, prevInp.value);
+
+  // ── solved banner
+  const hintsUsed = ch.hints_used || [];
+  const hintCost = hintsUsed.reduce((sum, n) => sum + (HINT_COSTS[n - 1] || 0), 0);
+  const solvedBanner = ch.solved ? `
+    <div class="solved-banner">
+      <div class="solved-icon">✓</div>
+      <div><div class="solved-text">Sfida risolta!</div>
+      <div class="solved-sub">Punti ottenuti: ${Math.max(1, ch.pts - hintCost)} / ${ch.pts} · Hint usati: ${hintsUsed.length}</div></div>
+    </div>` : '';
+
+  // ── attachment
+  let attachHtml = '';
+  if (ch.attachment) {
+    const isOpen = ch.attachment.type === 'open';
+    attachHtml = `
+      <div class="attachment-row">
+        <div class="attachment-icon">${isOpen ? '🌐' : '📎'}</div>
+        <div class="attachment-info">
+          <div class="attachment-name">${escHtml(ch.attachment.name)}</div>
+          <div class="attachment-note">${isOpen ? 'Aprire nel browser per risolvere la sfida' : 'Scarica e analizza con gli strumenti indicati'}</div>
+        </div>
+        ${isOpen
+          ? `<a class="btn-open" href="${ch.attachment.path}" target="_blank" rel="noopener">Apri →</a>`
+          : `<a class="btn-download" href="${ch.attachment.path}" download="${escHtml(ch.attachment.name)}">⬇ Scarica</a>`}
+      </div>`;
+  }
+
+  // ── terminal
+  const termHtml = ch.terminal ? `
+    <div class="terminal-label">Materiale / Scenario</div>
+    <div class="terminal">${escHtml(ch.terminal)}</div>` : '';
+
+  // ── hints
+  const costs = HINT_COSTS;
+  const hintsHtml = [1,2,3].map((hintNumber, i) => {
+    const htxt = ch[`hint${hintNumber}_text`] || '';
+    const n = hintNumber;
+    const used = hintsUsed.includes(n);
+    const locked = n > 1 && !hintsUsed.includes(n-1);
+    let statusTxt = locked ? '🔒 bloccato' : used ? '💡 usato' : `−${costs[i]} pt`;
+    return `
+      <div class="hint-row" id="hint-row-${code}-${n}">
+        <button class="hint-trigger" onclick="useHint('${code}',${n})" ${locked||used?'disabled':''}
+                title="${locked ? 'Usa prima l\'hint ' + (n-1) : ''}">
+          <span class="ht-left">
+            <span class="ht-num">HINT ${n}</span>
+            <span style="font-size:13px;color:var(--off)">${used ? 'Suggerimento utilizzato' : 'Rivela suggerimento'}</span>
+          </span>
+          <span class="ht-cost ${used?'used':locked?'locked':''}">${statusTxt}</span>
+        </button>
+        <div class="hint-body ${used?'show':''}" id="hint-body-${code}-${n}">${escHtml(htxt)}</div>
+      </div>`;
+  }).join('');
+
+  // ── flag form
+  const flagDisabled = ch.solved ? 'disabled' : '';
+  const formHtml = ch.solved ? '' : `
+    <div class="flag-section">
+      <div class="flag-row">
+        <input class="flag-input" id="flag-inp-${code}" type="text"
+               placeholder='FLAG[...]' ${flagDisabled}
+               oninput="rememberFlagDraft('${code}', this.value)"
+               onkeydown="if(event.key==='Enter') submitFlag('${code}')">
+        <button class="btn-submit" onclick="submitFlag('${code}')" ${flagDisabled}>Invia</button>
+      </div>
+      <div class="flag-feedback" id="flag-fb-${code}"></div>
+      <div class="attempts-label" id="att-lbl-${code}">Tentativi: ${ch.attempts || 0}</div>
+    </div>`;
+
+  area.innerHTML = `
+    <div class="ch-header">
+      <div class="ch-header-left">
+        <div class="ch-code-big">${ch.code}</div>
+        <div class="ch-title-big">${escHtml(ch.title)}</div>
+        <div class="ch-meta">
+          <span class="badge badge-cat" style="background:transparent;color:${catColor(ch.cat)};border:1px solid currentColor">${escHtml(ch.cat)}</span>
+          <span class="badge badge-${ch.diff}">${diffLabel(ch.diff)}</span>
+          <span class="badge badge-pts">${ch.pts} pt</span>
+          ${ch.solved ? '<span class="badge badge-solved-big">✓ RISOLTA</span>' : ''}
+        </div>
+      </div>
+    </div>
+
+    ${solvedBanner}
+
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Descrizione</div></div>
+      <div class="panel-body">
+        <div class="ch-desc">${escHtml(ch.desc)}</div>
+        ${termHtml}
+      </div>
+    </div>
+
+    ${attachHtml ? `<div>${attachHtml}</div>` : ''}
+
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Hint (costo: −1 / −1 / −2 pt)</div></div>
+      <div class="panel-body"><div class="hint-list">${hintsHtml}</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><div class="panel-title">Invia Flag</div></div>
+      <div class="panel-body">${formHtml}</div>
+    </div>`;
+
+  const nextInp = document.getElementById(`flag-inp-${code}`);
+  if (nextInp && !ch.solved) {
+    const draft = _flagDraftByCode[code];
+    if (typeof draft === 'string' && draft.length) nextInp.value = draft;
+  }
+}
+
+// ── HINT ────────────────────────────────────────────────────
+function useHint(code, n) {
+  return useHintAsync(code, n);
+}
+
+// ── FLAG SUBMIT ─────────────────────────────────────────────
+async function submitFlag(code) {
+  const ch = gameState.challenges.find(c => c.code===code);
+  if (!ch || !ch.serverId) return;
+  const inp = document.getElementById(`flag-inp-${code}`);
+  const fb  = document.getElementById(`flag-fb-${code}`);
+  const att = document.getElementById(`att-lbl-${code}`);
+  if (!inp) return;
+
+  const val = inp.value.trim();
+  if (!val) return;
+
+  ch.attempts = (ch.attempts || 0) + 1;
+  if (att) att.textContent = `Tentativi: ${ch.attempts}`;
+  inp.disabled = true;
+
+  const res = await apiJson('/api/game/submit-flag', {
+    method: 'POST',
+    body: JSON.stringify({ challenge_id: ch.serverId, flag: val }),
+  });
+  inp.disabled = false;
+  if (!res || !res.data) return;
+
+  if (res.status === 429 || res.data.error === 'RATE_LIMIT') {
+    fb.className = 'flag-feedback err';
+    fb.textContent = `⚠ Troppi tentativi, attendi qualche secondo.`;
+    return;
+  }
+
+  if (res.data.ok && res.data.correct) {
+    ch.solved = true;
+    delete _flagDraftByCode[code];
+    _wrongStreak[code] = 0;
+    inp.classList.remove('err'); inp.classList.add('ok');
+    fb.className = 'flag-feedback ok';
+    fb.textContent = `✓ FLAG CORRETTA!`;
+    showNemesisMessage(getNemesisMessage(ch.cat, true, 0), 'challenge_complete');
+    // Evita loadGameState: il server è già in completed e risponderebbe { completed:true } → login spurio.
+    if (res.data.all_solved) {
+      checkAllSolvedAndRedirect();
+      return;
+    }
+    const refreshed = await loadGameState();
+    if (!refreshed) return;
+    updateSidebar();
+    if (checkAllSolvedAndRedirect()) return;
+    setTimeout(() => {
+      if (currentCode === code) renderChallenge(code);
+    }, 800);
+  } else if (res.data.ok && res.data.already_solved) {
+    ch.solved = true;
+    delete _flagDraftByCode[code];
+    fb.className = 'flag-feedback ok';
+    fb.textContent = `✓ Sfida già risolta.`;
+    const refreshed = await loadGameState();
+    if (!refreshed) return;
+    updateSidebar();
+    if (currentCode === code) renderChallenge(code);
+  } else {
+    _wrongStreak[code] = (_wrongStreak[code] || 0) + 1;
+    inp.classList.remove('ok'); inp.classList.add('err');
+    fb.className = 'flag-feedback err';
+    fb.textContent = `✕ Flag errata (tentativo ${ch.attempts}). Riprova.`;
+    const kind = res.data.nemesis_kind || (_wrongStreak[code] >= 2 ? 'wrong_streak' : 'wrong');
+    const wrongMsg = res.data.nemesis_message || getNemesisMessage(ch.cat, false, _wrongStreak[code]);
+    showNemesisMessage(wrongMsg, kind);
+    setTimeout(() => { inp.classList.remove('err'); }, 1500);
+  }
+}
+
+async function useHintAsync(code, n) {
+  const ch = gameState.challenges.find((c) => c.code === code);
+  if (!ch || !ch.serverId) return;
+  if ((ch.hints_used || []).includes(n)) return;
+  if (n > 1 && !(ch.hints_used || []).includes(n - 1)) {
+    alert('Usa prima l\'hint ' + (n - 1));
+    return;
+  }
+  const res = await apiJson('/api/game/hint', {
+    method: 'POST',
+    body: JSON.stringify({ challenge_id: ch.serverId, hint_number: n }),
+  });
+  if (!res || !res.data || !res.data.ok) return;
+  _isMutatingHint = true;
+  try {
+    if (!ch.hints_used.includes(n)) ch.hints_used.push(n);
+    ch[`hint${n}_text`] = res.data.hint_text || ch[`hint${n}_text`] || '';
+    if (typeof res.data.score === 'number') {
+      if (!gameState.me) gameState.me = {};
+      gameState.me.score = res.data.score;
+    }
+    if (res.data.nemesis) {
+      gameState.nemesis = {
+        ...gameState.nemesis,
+        ...res.data.nemesis,
+      };
+    }
+    updateSidebar();
+    renderChallenge(code);
+  } finally {
+    _isMutatingHint = false;
+  }
+}
+
+function checkAllSolvedAndRedirect() {
+  const total = gameState.challenges.length;
+  if (total === 0) return false;
+  if (totalSolved() < total) return false;
+  const integrity = gameState.nemesis?.integrity_pct ?? 0;
+  sessionStorage.setItem('nemesis_final_integrity', String(integrity));
+  window.location.href = '/end.html';
+  return true;
+}
+
+async function loadGameState() {
+  if (_gameStateLoadPromise) return _gameStateLoadPromise;
+  _gameStateLoadPromise = (async () => {
+  const res = await apiJson('/api/game/state');
+    if (!res || !res.data || !res.data.ok) return false;
+    const data = res.data;
+    if (data.lost) {
+      window.location.href = '/lost.html';
+      return false;
+    }
+    if (data.completed) {
+      // Stesso flusso appena dopo l'ultima flag: il server segna completed prima di questo GET;
+      // localmente abbiamo già N/N risolte. Rientro a freddo: challenges init = 21 tutte false → login.
+      const total = gameState.challenges.length;
+      if (total > 0 && totalSolved() >= total) {
+        const integrity = gameState.nemesis?.integrity_pct ?? 0;
+        sessionStorage.setItem('nemesis_final_integrity', String(integrity));
+        window.location.href = '/end.html';
+        return false;
+      }
+      window.location.href = '/login.html#completed';
+      return false;
+    }
+    if (!data.session || data.session.status !== 'active') {
+      window.location.href = '/login.html';
+      return false;
+    }
+    if (Number.isFinite(data.server_time)) serverClockOffset = data.server_time - Date.now();
+    const previousByCode = new Map((gameState.challenges || []).map((c) => [c.code, c]));
+    gameState.me = data.me || gameState.me;
+    gameState.session = data.session || gameState.session;
+    gameState.nemesis = data.nemesis || gameState.nemesis;
+    if (data.session?.mode === 'competitive' && Array.isArray(data.events)) {
+      // Prima sync: evita replay del backlog storico (che genera effetto "loop").
+      // Da qui in poi mostriamo solo eventi nuovi.
+      if (!_eventsBaselineInitialized) {
+        for (const evt of data.events) {
+          if (evt && evt.id !== undefined && evt.id !== null) _seenEventIds.add(evt.id);
+        }
+        _eventsBaselineInitialized = true;
+      }
+      const myTeam = (gameState.me?.team_name || '').toLowerCase();
+      const evts = data.events
+        .filter(e => e.type === 'flag_captured' && e.challenge_code && !_seenEventIds.has(e.id))
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      for (const evt of evts) {
+        _seenEventIds.add(evt.id);
+        const isOwn = (evt.team_name || '').toLowerCase() === myTeam;
+        if (!isOwn && evt.team_name) {
+          // Usa il messaggio canonico scritto dal server; fallback locale solo se assente
+          const msg = (evt.message && evt.message.trim()) || getNemesisMessage(null, true, 0, evt.team_name, evt.challenge_code);
+          showNemesisMessage(msg, 'challenge_complete');
+        }
+      }
+    } else {
+      // In coop o senza stream eventi competitive, resetta baseline per sicurezza
+      // in caso di cambio sessione/modalità.
+      _eventsBaselineInitialized = false;
+    }
+    // Solo le sfide della sessione (l'API filtra su session_challenges). Non mappare tutto CHALLENGES
+    // o si “rigonfiano” di nuovo a 21 voci in UI.
+    gameState.challenges = (data.challenges || []).map((srv) => {
+      
+      const att =
+        
+        (srv.has_attachment
+          ? {
+              name: srv.attachment_name || 'allegato',
+              path: `/api/game/attachment/${srv.id}`,
+              type: /\.html?$/i.test(srv.attachment_name || '') ? 'open' : 'download',
+            }
+          : null);
+      return {
+        code: srv.code,
+        attachment: att,
+        serverId: srv.id ?? null,
+        title: srv.title,
+        cat: srv.category,
+        diff: srv.difficulty,
+        pts: srv.base_points,
+        desc: srv.description,
+        terminal: srv.terminal_block,
+        solved: !!srv.is_solved,
+        hints_used: srv.hints_used || [],
+        hint1_text: srv.hint1_text || null,
+        hint2_text: srv.hint2_text || null,
+        hint3_text: srv.hint3_text || null,
+        attempts: previousByCode.get(srv.code)?.attempts || 0,
+      };
+    });
+    return true;
+  })();
+  try {
+    return await _gameStateLoadPromise;
+  } finally {
+    _gameStateLoadPromise = null;
+  }
+}
+
+// ── RESET ───────────────────────────────────────────────────
+async function resetAll() {
+  const ok = await loadGameState();
+  if (!ok) return;
+  updateSidebar();
+  document.getElementById('welcome-screen').style.display = 'block';
+  document.getElementById('ch-area').style.display = 'none';
+  document.querySelectorAll('.ch-item').forEach(el => el.classList.remove('active'));
+  currentCode = null;
+}
+
+// ── INIT ────────────────────────────────────────────────────
+async function initPage() {
+  const ok = await loadGameState();
+  if (!ok) return;
+  if (checkAllSolvedAndRedirect()) return;
+  buildSidebar();
+  updateSidebar();
+  showNemesisMessage(getNemesisStateMessage());
+  // In co-op il pannello laterale non serve: Nemesis gira su schermo centrale
+  const sidePanel = document.querySelector('.nemesis-side-panel');
+  document.body.classList.toggle('competitive',gameState.session?.mode==='competitive');
+  if (sidePanel) sidePanel.style.display = gameState.session?.mode === 'coop' ? 'none' : '';
+  if (gameTimerTick) clearInterval(gameTimerTick);
+  updateHeaderTimer();
+  gameTimerTick = setInterval(updateHeaderTimer, 1000);
+  startGamePolling();
+}
+
+function applyLiveRefresh() {
+  updateSidebar();
+  if (currentCode) {
+    renderChallenge(currentCode);
+  }
+}
+
+function startGamePolling() {
+  stopGamePolling();
+  gamePollTimer = setInterval(async () => {
+    if (document.hidden) return;
+    if (_isMutatingHint) return;
+    const ok = await loadGameState();
+    if (!ok) return;
+    applyLiveRefresh();
+  }, 15000);
+}
+
+function stopGamePolling() {
+  if (gamePollTimer) {
+    clearInterval(gamePollTimer);
+    gamePollTimer = null;
+  }
+}
+
+if (window.NEMESIS && typeof window.NEMESIS.configureView === 'function') {
+  window.NEMESIS.configureView({
+    role: 'player',
+    audioEnabled: false,
+  });
+}
+if (typeof initOrbs === 'function') initOrbs();
+initPage();
+startNemesisSpeechRotation();
+
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden) {
+    stopGamePolling();
+    return;
+  }
+  const ok = await loadGameState();
+  if (ok) applyLiveRefresh();
+  startGamePolling();
+});
+</script>
+</body>
+</html>

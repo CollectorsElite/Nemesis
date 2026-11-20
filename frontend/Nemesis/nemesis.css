@@ -1,0 +1,104 @@
+/* ============================================================
+   NEMESIS — Stili widget, fullscreen e team panel
+   Dipende dalle CSS custom properties definite nel documento
+   ospitante (--navy, --border, --orange, --mono, ecc.)
+   ============================================================ */
+
+/* ── NEMESIS WIDGET (sidebar spectator) ── */
+.nemesis-widget {
+  background: #050c15;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+}
+.nem-label { font-family: var(--mono); font-size: 9px; color: var(--orange); letter-spacing: 3px; margin-bottom: 8px; }
+.nem-canvas-wrap { position: relative; display: inline-block; }
+#nem-canvas-small { display: block; }
+.nem-bar-wrap { margin: 10px 0 4px; }
+.nem-bar-track { height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden; border: 1px solid rgba(216,110,51,.2); }
+.nem-bar-fill { height: 100%; border-radius: 3px; transition: width 1.2s ease, background .8s ease; width: 100%; }
+.nem-integrity { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 4px; }
+.nem-state-label { font-family: var(--mono); font-size: 9px; color: var(--orange); letter-spacing: 2px; margin-top: 2px; text-transform: uppercase; }
+.nem-msg {
+  font-family: var(--mono); font-size: 10px; color: var(--orange); line-height: 1.6;
+  margin-top: 8px; font-style: italic; padding: 6px 8px;
+  background: rgba(216,110,51,.06); border-radius: 4px;
+  border: 1px solid rgba(216,110,51,.15);
+  text-align: left; max-height: 60px; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.nem-msg.hidden { display: none; }
+.nem-progress-wrap { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(216,110,51,.16); }
+.nem-progress-title { font-family: var(--mono); font-size: 8px; letter-spacing: 1.5px; color: var(--muted2); text-transform: uppercase; text-align: left; margin-bottom: 5px; }
+.nem-challenge-dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.nem-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1px solid rgba(216,110,51,.28); box-shadow: 0 0 5px rgba(216,110,51,.2); }
+.nem-dot.on { background: rgba(216,110,51,.75); }
+.nem-dot.off { background: rgba(74,101,128,.24); border-color: rgba(74,101,128,.45); box-shadow: none; opacity: .55; }
+.nem-score-mini { margin-top: 8px; max-height: 82px; overflow-y: auto; border: 1px solid rgba(255,255,255,.08); border-radius: 4px; padding: 5px 6px; background: rgba(13,31,51,.5); }
+.nem-score-row { display: flex; justify-content: space-between; gap: 6px; font-family: var(--mono); font-size: 9px; line-height: 1.55; }
+.nem-score-team { color: var(--off); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.nem-score-val { color: var(--orange2); white-space: nowrap; }
+.nem-score-empty { font-family: var(--mono); font-size: 9px; color: var(--muted2); }
+.nem-actions { margin-top: 10px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.nem-mode-tag { font-family: var(--mono); font-size: 9px; padding: 2px 6px; border-radius: 2px; margin-bottom: 4px; display: inline-block; }
+.nem-mode-coop { background: rgba(93,173,226,.1); color: #5dade2; border: 1px solid rgba(93,173,226,.2); }
+.nem-mode-comp { background: rgba(231,76,60,.1); color: #e67e22; border: 1px solid rgba(230,126,34,.2); }
+
+/* ── Team NEMESIS panel (competitive) ── */
+.team-nem-list { display: flex; flex-direction: column; gap: 5px; }
+.team-nem-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: rgba(13,31,51,.4); cursor: pointer; transition: background .15s; }
+.team-nem-row:hover { background: rgba(255,255,255,.04); }
+.team-nem-row.leader { border-color: rgba(216,110,51,.45); background: rgba(216,110,51,.07); }
+.team-nem-row.active { border-color: rgba(93,173,226,.5); background: rgba(93,173,226,.08); }
+.team-nem-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.team-nem-name { font-family: var(--cond); font-size: 11px; font-weight: 600; color: var(--off); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.team-nem-bar-wrap { width: 56px; flex-shrink: 0; }
+.team-nem-bar-track { height: 4px; background: rgba(255,255,255,.07); border-radius: 2px; overflow: hidden; }
+.team-nem-bar-fill { height: 100%; border-radius: 2px; transition: width .6s; }
+.team-nem-pct { font-family: var(--mono); font-size: 9px; color: var(--muted); min-width: 32px; text-align: right; flex-shrink: 0; }
+.team-nem-solved { font-family: var(--mono); font-size: 9px; color: var(--muted2); flex-shrink: 0; }
+
+/* ── FULLSCREEN NEMESIS OVERLAY ── */
+#nem-fullscreen {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(3, 8, 15, 0.97);
+  z-index: 500;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+#nem-fullscreen.show { display: flex; }
+#nem-fs-close {
+  position: absolute; top: 20px; right: 24px;
+  font-family: var(--mono); font-size: 11px; color: var(--muted2);
+  background: transparent; border: 1px solid var(--border); border-radius: 3px;
+  padding: 5px 12px; cursor: pointer; letter-spacing: 1px;
+  transition: all .2s;
+}
+#nem-fs-close:hover { color: var(--red); border-color: var(--red); }
+.nem-fs-label { font-family: var(--mono); font-size: 10px; letter-spacing: 4px; color: var(--orange); }
+.nem-fs-bar-wrap { width: 280px; }
+.nem-fs-bar-track { height: 8px; background: rgba(255,255,255,.06); border-radius: 4px; overflow: hidden; border: 1px solid rgba(216,110,51,.2); }
+.nem-fs-bar-fill { height: 100%; border-radius: 4px; transition: width 1.2s ease, background .8s ease; width: 100%; }
+.nem-fs-integrity { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 6px; text-align: center; }
+.nem-fs-state { font-family: var(--mono); font-size: 10px; color: var(--orange); letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-top: 2px; }
+.nem-fs-msg { font-family: var(--mono); font-size: 12px; color: var(--off); max-width: 320px; text-align: center; line-height: 1.7; font-style: italic; padding: 12px; background: rgba(216,110,51,.06); border: 1px solid rgba(216,110,51,.12); border-radius: 6px; }
+.nem-fs-mode { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--muted2); }
+.nem-fs-progress-wrap { width: 320px; }
+.nem-score-mini-fs { width: 320px; max-height: 130px; }
+
+.nem-msg.typing::after,
+.nem-fs-msg.typing::after {
+  content: '█';
+  margin-left: 4px;
+  animation: nem-cursor-blink .8s step-end infinite;
+  color: var(--orange2);
+}
+@keyframes nem-cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}

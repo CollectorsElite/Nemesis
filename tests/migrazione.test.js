@@ -1,0 +1,27 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import {spawnSync} from 'node:child_process';
+import {DatabaseSync} from 'node:sqlite';
+test('Importazione dello storico con ID originali, rollback e protezione dalla sovrascrittura',t=>{
+  const root=path.resolve(import.meta.dirname,'..');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ctf-migra-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const archive=path.join(dir,'fonte.json'),dst=path.join(dir,'dest');
+  const code=JSON.parse(fs.readFileSync(path.join(root,'db/catalogo.json')))[0];
+  const snapshot={admin:[],users:[{id:14,username:'test',team_name:'Test',password_hash:'fixture'}],challenges:[{...code,id:91}],game_sessions:[{id:78,name:'Storico',game_code:'OLD2025',status:'ended'}],session_players:[{id:504,session_id:78,user_id:14,score:8}],session_challenges:[{id:10,session_id:78,challenge_id:91,is_solved:true}],team_solutions:[{id:914,session_id:78,user_id:14,challenge_id:91,points_awarded:5}],hint_usage:[],flag_attempts:[],nemesis_log:[],nemesis_state:[]};
+  const run=()=>spawnSync(process.execPath,['tools/importa-storico.js',archive,dst],{cwd:root,encoding:'utf8'});
+  fs.writeFileSync(archive,JSON.stringify({...snapshot,users:[]}));
+  assert.notEqual(run().status,0);assert(!fs.existsSync(path.join(dst,'escalation-ctf.sqlite')));
+  fs.writeFileSync(archive,JSON.stringify(snapshot));
+  const result=run();assert.equal(result.status,0,result.stderr);
+  const db=new DatabaseSync(path.join(dst,'escalation-ctf.sqlite'),{readOnly:true});
+  assert.equal(db.prepare('SELECT score FROM session_players WHERE id=504').get().score,8);
+  assert.equal(db.prepare('SELECT code FROM challenges WHERE id=91').get().code,code.code);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM challenges').get().n,32);
+  assert.equal(db.prepare('SELECT user_id FROM team_solutions WHERE id=914').get().user_id,14);
+  db.close();const bytes=fs.readFileSync(path.join(dst,'escalation-ctf.sqlite'));assert.notEqual(run().status,0);
+  assert.deepEqual(fs.readFileSync(path.join(dst,'escalation-ctf.sqlite')),bytes);
+});

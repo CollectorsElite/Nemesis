@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escalation CTF — Tempo scaduto</title>
+<style>
+:root {
+  --navy:     #0d1f33;
+  --navy2:    #152f4e;
+  --navy3:    #1c3d63;
+  --border:   #1e3a55;
+  --orange:   #d86e33;
+  --orange2:  #e8813d;
+  --orange3:  #f0a060;
+  --white:    #ffffff;
+  --offwhite: #e8edf2;
+  --muted:    #7a95b0;
+  --muted2:   #4a6580;
+  --red:      #e74c3c;
+  --red2:     #c0392b;
+  --mono: 'Share Tech Mono', monospace;
+  --sans: 'Barlow', sans-serif;
+  --cond: 'Barlow Condensed', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--navy);
+  color: var(--offwhite);
+  min-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── background layers ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(28,61,99,.35) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 65%, rgba(231,76,60,.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(192,57,43,.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── wrapper ── */
+.stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 24px 60px;
+  margin: auto;
+  max-width: 640px;
+  width: 100%;
+  text-align: center;
+}
+
+/* ── logos ── */
+.logos-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+.logo-rossellini img {
+  height: 52px;
+  width: auto;
+  opacity: .95;
+  display: block;
+  filter: drop-shadow(0 0 12px rgba(255,255,255,.08));
+}
+.logo-divider {
+  width: 1px;
+  height: 56px;
+  background: var(--border);
+}
+.logo-bespoke {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo-bespoke img {
+  height: 56px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 0 10px rgba(231,76,60,.2));
+}
+.logo-bespoke-text {
+  font-family: var(--cond);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--orange);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.logo-bespoke-sub {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  font-weight: 400;
+}
+
+/* ── mission badge ── */
+.mission-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(231,76,60,.1);
+  border: 1px solid rgba(231,76,60,.35);
+  border-radius: 24px;
+  padding: 6px 20px;
+  margin-bottom: 32px;
+}
+.mission-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 8px rgba(231,76,60,.7);
+}
+.mission-badge-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--red);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ── status label ── */
+.nemesis-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--muted2);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.nemesis-status span {
+  color: var(--red);
+}
+
+/* ── main title ── */
+.title-main {
+  font-family: var(--cond);
+  font-size: 56px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--white);
+  line-height: 1.0;
+  margin-bottom: 8px;
+}
+.title-main .accent { color: var(--red); }
+
+/* ── divider line ── */
+.divider-line {
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--red), transparent);
+  margin: 28px auto;
+}
+
+/* ── message ── */
+.message-card {
+  background: rgba(21,47,78,.55);
+  border: 1px solid rgba(231,76,60,.25);
+  border-radius: 16px;
+  padding: 36px 40px;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 40px;
+  text-align: left;
+}
+.message-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--navy2), var(--red2), var(--red), var(--navy2));
+}
+
+.msg-label {
+  font-family: var(--cond);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.msg-body {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 300;
+  color: var(--offwhite);
+  line-height: 1.7;
+}
+.msg-body strong { color: var(--red); font-weight: 600; }
+.msg-body em { color: var(--orange); font-style: normal; font-weight: 500; }
+
+/* ── back button ── */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 40px;
+  background: rgba(231,76,60,.18);
+  border: 1px solid rgba(231,76,60,.45);
+  border-radius: 10px;
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--red);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-back::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(255,255,255,.05), transparent);
+  pointer-events: none;
+}
+.btn-back:hover { background: rgba(231,76,60,.28); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(231,76,60,.2); }
+.btn-back:active { transform: translateY(0); }
+
+/* ── footer note ── */
+.footer-note {
+  margin-top: 32px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted2);
+  letter-spacing: 1px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ── scan-line animation (red tint) ── */
+@keyframes scanDown {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200vh); }
+}
+.scanline {
+  position: fixed;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(231,76,60,.18), transparent);
+  pointer-events: none;
+  z-index: 2;
+  animation: scanDown 6s linear infinite;
+}
+</style>
+<link rel="icon" href="/assets/escalation-segno.svg"><link rel="stylesheet" href="/assets/suite.css">
+<script defer src="/assets/suite.js"></script>
+</head>
+<body class="screen-lost">
+
+<div class="scanline"></div>
+
+<div class="stage">
+
+  <!-- loghi centrati -->
+  <div class="suite-brand" aria-label="Escalation CTF"><img class="suite-mark" src="/assets/escalation-segno.svg" alt=""><img class="suite-name" src="/assets/escalation-nome.svg" alt="Escalation"><b>CTF</b></div>
+  <div class="logos-row">
+    <div class="logo-rossellini">
+      <img src="logo.svg" alt="ITS Rossellini">
+    </div>
+    <div class="logo-divider"></div>
+    <div class="logo-bespoke">
+      <img src="LOGO_BESPOKEAIDA.svg" alt="BespokeAIDA">
+      <div>
+        <div class="logo-bespoke-text">BespokeAIDA</div>
+        <div class="logo-bespoke-sub">AI Design Agency</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mission-badge">
+    <div class="mission-badge-dot"></div>
+    <div class="mission-badge-text">Tempo scaduto</div>
+  </div>
+
+  <div class="nemesis-status">NEMESIS — <span>ANCORA ATTIVO</span></div>
+
+  <div class="title-main">
+    NEMESIS<br><span class="accent">CTF</span>
+  </div>
+
+  <div class="divider-line"></div>
+
+  <div class="message-card">
+    <div class="msg-label">Messaggio di sistema — SESSIONE TERMINATA</div>
+    <div class="msg-body">
+      Il tempo a tua disposizione è scaduto. Grazie per aver partecipato alla sfida:<br><br>
+      il tuo impegno è stato registrato e il tuo contributo
+      <strong>non passerà inosservato</strong>.<br><br>
+      <em>Accesso revocato. La battaglia continua.</em>
+    </div>
+  </div>
+
+  <a class="btn-back" href="/login.html">← Torna al Login</a>
+
+  <div class="footer-note">
+    Sistema sicuro — Sessione terminata per scadenza<br>
+    NEMESIS CTF · ITS Rossellini × BespokeAIDA
+  </div>
+
+</div>
+
+</body>
+</html>

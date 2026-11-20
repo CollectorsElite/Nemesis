@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REV-01 Crackme</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0a1628; color:#e2e8f0; margin:0; display:grid; place-items:center; min-height:100vh; }
+    .card { width:min(460px,92vw); background:#111c2d; border:1px solid #1e3a55; border-radius:12px; padding:20px; }
+    input,button { width:100%; padding:10px; margin-top:10px; border-radius:8px; border:1px solid #334155; }
+    button { background:#e74c3c; color:#fff; border:none; font-weight:700; cursor:pointer; }
+    #out { margin-top:12px; font-family:Consolas,monospace; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h3>REV-01 — Crackme JS</h3>
+    <p>Trova la password nel sorgente JavaScript.</p>
+    <input id="pwd" type="password" placeholder="Password">
+    <button id="btn">Verifica</button>
+    <div id="out"></div>
+  </div>
+  <script>
+    document.getElementById('btn').onclick = () => {
+      const out = document.getElementById('out');
+      if (document.getElementById('pwd').value === 'FLAG[html_s0urc3_r3v34ls]') {
+        out.textContent = 'FLAG[html_s0urc3_r3v34ls]';
+        out.style.color = '#2ecc71';
+      } else {
+        out.textContent = 'Password errata.';
+        out.style.color = '#e74c3c';
+      }
+    };
+  </script>
+</body>
+</html>

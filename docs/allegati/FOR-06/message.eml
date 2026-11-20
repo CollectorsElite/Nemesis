@@ -1,0 +1,9 @@
+MIME-Version: 1.0
+Date: Sat, 19 Apr 2026 12:00:00 +0000
+From: security@nemesis-ctf.demo
+To: player@local
+Subject: Report interno
+X-CTF-Flag: FLAG[em41l_h34d3rs_t3ll_t4l3s]
+Content-Type: text/plain; charset=utf-8
+
+Corpo del messaggio: nessuna flag qui, controlla gli header.

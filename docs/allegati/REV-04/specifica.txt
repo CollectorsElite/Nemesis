@@ -1,0 +1,5 @@
+RECORD = HACKER
+LOTTO = CTF2025
+INTERMEDIO = primi 8 caratteri esadecimali di MD5(RECORD + LOTTO), in maiuscolo
+IMPRONTA = primi 16 caratteri esadecimali di SHA1(RECORD + "|" + INTERMEDIO + "|" + LOTTO), in minuscolo
+Testo in UTF-8 senza ritorno a capo finale.

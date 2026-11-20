@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escalation CTF — Accesso</title>
+<link rel="stylesheet" href="/Nemesis/nemesis.css">
+<style>
+:root {
+  --navy:      #0d1f33;
+  --navy2:     #152f4e;
+  --navy3:     #1c3d63;
+  --navy4:     #254d7a;
+  --orange:    #d86e33;
+  --orange2:   #e8813d;
+  --orange3:   #f0a060;
+  --white:     #ffffff;
+  --offwhite:  #e8edf2;
+  --muted:     #7a95b0;
+  --muted2:    #4a6580;
+  --border:    #1e3a55;
+  --mono:      'Share Tech Mono', monospace;
+  --sans:      'Barlow', sans-serif;
+  --cond:      'Barlow Condensed', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--navy);
+  color: var(--offwhite);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, #1c3d6320 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, #d86e3310 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+.header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(13,31,51,.85);
+  backdrop-filter: blur(8px);
+}
+.header-logos { display: flex; align-items: center; gap: 32px; }
+.logo-rossellini img { height: 24px; width: auto; opacity: .95; display: block; }
+.logo-divider { width: 1px; height: 32px; background: var(--border); }
+.logo-bespoke { display: flex; align-items: center; gap: 10px; }
+.logo-bespoke img { height: 40px; width: auto; display: block; }
+.logo-bespoke-text { font-family: var(--cond); font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--orange); text-transform: uppercase; line-height: 1.2; }
+.logo-bespoke-sub { font-size: 9px; color: var(--muted); letter-spacing: 1px; font-weight: 400; }
+.header-tag { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; border: 1px solid var(--border); padding: 4px 10px; border-radius: 3px; }
+
+.view { display: none; flex: 1; position: relative; z-index: 1; }
+.view.active { display: flex; }
+
+#view-login {
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(21,47,78,.6);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--navy2), var(--orange), var(--navy2));
+}
+.login-step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.step-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  border: 2px solid var(--border);
+  color: var(--muted);
+  transition: all .3s;
+}
+.step-dot.active { border-color: var(--orange); color: var(--orange); background: rgba(216,110,51,.1); }
+.step-dot.done { border-color: #2d8a5e; color: #2d8a5e; background: rgba(45,138,94,.1); }
+.step-line { flex: 1; height: 1px; background: var(--border); }
+.step-label { font-family: var(--cond); font-size: 11px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+
+.login-title {
+  font-family: var(--cond);
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--white);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.login-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+.login-sub strong { color: var(--orange); font-weight: 600; }
+
+.form-group { margin-bottom: 18px; }
+.form-label {
+  display: block;
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.form-input {
+  width: 100%;
+  background: rgba(13,31,51,.8);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--offwhite);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  letter-spacing: 2px;
+}
+.form-input::placeholder { color: var(--muted2); letter-spacing: 1px; }
+.form-input:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(216,110,51,.15);
+}
+.form-input.error { border-color: #c0392b; box-shadow: 0 0 0 3px rgba(192,57,43,.15); }
+
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  background: var(--orange);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--white);
+  cursor: pointer;
+  transition: all .2s;
+  margin-top: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-login::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(255,255,255,.1), transparent);
+  pointer-events: none;
+}
+.btn-login:hover:not(:disabled) { background: var(--orange2); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(216,110,51,.3); }
+.btn-login:active:not(:disabled) { transform: translateY(0); }
+.btn-login:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+.error-msg {
+  display: none;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(192,57,43,.15);
+  border: 1px solid rgba(192,57,43,.4);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #e74c3c;
+  letter-spacing: .5px;
+}
+.error-msg.show { display: block; }
+
+.login-footer {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted2);
+  text-align: center;
+  letter-spacing: 1px;
+  line-height: 1.6;
+}
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  cursor: pointer; margin-bottom: 20px;
+  background: none; border: none; padding: 0;
+  transition: color .2s;
+}
+.back-link:hover { color: var(--orange); }
+.game-code-badge {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(216,110,51,.1);
+  border: 1px solid rgba(216,110,51,.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 24px;
+}
+.game-code-badge .gc-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 1px; }
+.game-code-badge .gc-val { font-family: var(--mono); font-size: 13px; color: var(--orange); letter-spacing: 3px; font-weight: 700; }
+
+#view-lobby {
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 40px 260px 40px 20px;
+  gap: 0;
+}
+.lobby-shell {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.lobby-container { width: 100%; max-width: 680px; }
+.lobby-nemesis-side {
+  position: fixed;
+  right: 22px;
+  top: 92px;
+  width: 230px;
+  z-index: 30;
+}
+.lobby-nemesis-side .nemesis-widget { margin: 0; }
+
+.lobby-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.lobby-session-name {
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.lobby-title {
+  font-family: var(--cond);
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--white);
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+.lobby-title span { color: var(--orange); }
+.lobby-mode-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(216,110,51,.15);
+  border: 1px solid rgba(216,110,51,.3);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-family: var(--cond); font-size: 12px; font-weight: 600;
+  letter-spacing: 1px; color: var(--orange); text-transform: uppercase;
+}
+
+.lobby-status-card {
+  background: rgba(21,47,78,.6);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  backdrop-filter: blur(12px);
+  margin-bottom: 16px;
+}
+.lobby-status-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
+}
+.lobby-status-label {
+  font-family: var(--cond); font-size: 11px; font-weight: 600;
+  letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+}
+.lobby-waiting-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 11px; color: var(--orange);
+}
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+.player-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: rgba(13,31,51,.6);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: all .3s;
+}
+.player-row.connected { border-color: rgba(45,138,94,.4); background: rgba(45,138,94,.06); }
+.player-row.waiting { border-color: var(--border); opacity: .7; }
+.player-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.player-name { flex: 1; font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--offwhite); }
+.player-status {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
+  padding: 3px 8px; border-radius: 3px; text-transform: uppercase;
+}
+.player-status.online { background: rgba(45,138,94,.15); color: #2ecc71; border: 1px solid rgba(46,204,113,.3); }
+.player-status.offline { background: rgba(74,101,128,.1); color: var(--muted); border: 1px solid var(--border); }
+
+.lobby-progress {
+  margin-top: 20px;
+  display: flex; align-items: center; gap: 12px;
+}
+.lobby-progress-bar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.lobby-progress-fill { height: 100%; background: linear-gradient(90deg, var(--orange), var(--orange3)); border-radius: 2px; transition: width .5s ease; }
+.lobby-progress-label { font-family: var(--mono); font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+.lobby-info-row {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+  margin-bottom: 16px;
+}
+.lobby-info-card {
+  background: rgba(21,47,78,.4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+}
+.lobby-info-label { font-family: var(--cond); font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 6px; }
+.lobby-info-val { font-family: var(--mono); font-size: 20px; color: var(--white); font-weight: 700; }
+.lobby-info-val.orange { color: var(--orange); }
+
+.lobby-waiting-msg {
+  text-align: center;
+  padding: 20px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.lobby-waiting-msg strong { color: var(--offwhite); font-weight: 500; }
+
+#view-admin {
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+.admin-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(21,47,78,.6);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+}
+.admin-card h2 {
+  font-family: var(--cond);
+  font-size: 22px;
+  color: var(--white);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.admin-card p { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+@media (max-width: 1200px) {
+  #view-lobby { padding-right: 20px; }
+  .lobby-nemesis-side { display: none; }
+}
+
+.completed-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(21,47,78,.6);
+  border: 1px solid rgba(46,204,113,.3);
+  border-radius: 16px;
+  padding: 40px;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.completed-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--navy2), #2ecc71, var(--orange), var(--navy2));
+}
+.completed-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: rgba(46,204,113,.15);
+  border: 2px solid rgba(46,204,113,.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 20px;
+}
+.completed-title {
+  font-family: var(--cond);
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #2ecc71;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.completed-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+.completed-sub strong { color: var(--offwhite); font-weight: 500; }
+.btn-end-page {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 32px;
+  background: var(--orange);
+  border: none; border-radius: 8px;
+  font-family: var(--cond); font-size: 14px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--white); cursor: pointer; text-decoration: none;
+  transition: all .2s;
+}
+.btn-end-page:hover { background: var(--orange2); transform: translateY(-1px); box-shadow: 0 4px 18px rgba(216,110,51,.3); }
+</style>
+<link rel="icon" href="/assets/escalation-segno.svg"><link rel="stylesheet" href="/assets/suite.css">
+<script defer src="/assets/suite.js"></script>
+</head>
+<body class="screen-login">
+
+<header class="header">
+  <div class="suite-brand" aria-label="Escalation CTF"><img class="suite-mark" src="/assets/escalation-segno.svg" alt=""><img class="suite-name" src="/assets/escalation-nome.svg" alt="Escalation"><b>CTF</b></div><div class="partner-lockup"><img src="logo.svg" alt="ITS Rossellini"><img src="LOGO_BESPOKEAIDA.svg" alt="BespokeAIDA"></div>
+</header>
+
+<div id="view-login" class="view active">
+  <section class="mission-intro" aria-labelledby="mission-title">
+    <div class="mission-emblem" aria-hidden="true"><canvas id="login-orb" width="270" height="270"></canvas></div>
+    <div class="mission-copy"><div class="mission-type">Capture the flag</div>
+    <h1 id="mission-title">Operazione<br><em>NEMESIS</em></h1>
+    <p>Analizza le tracce, conquista le flag e riduci l’integrità di NEMESIS insieme alla tua squadra.</p></div>
+  </section>
+  <div class="login-card" id="card-phase1">
+    <div class="login-step-indicator">
+      <div class="step-dot active" id="dot1">1</div>
+      <div class="step-line"></div>
+      <div class="step-dot" id="dot2">2</div>
+      <div style="margin-left:8px">
+        <div class="step-label" id="step-label">Fase 1 — Codice sessione</div>
+      </div>
+    </div>
+
+    <div id="phase1">
+      <h2 class="login-title">Entra in sessione</h2>
+      <div class="login-sub">Inserisci il <strong>codice sessione</strong> fornito dall'organizzatore per accedere alla partita.</div>
+      <div class="form-group">
+        <label class="form-label" for="game-code-input">Codice sessione</label>
+        <input class="form-input" id="game-code-input" type="text" placeholder="_ _ _ _ _ _ _ _" autocomplete="off" style="text-transform:uppercase">
+      </div>
+      <button type="button" class="btn-login" id="btn-phase1">Continua →</button>
+      <div class="error-msg" role="alert" id="err1">Codice sessione non valido. Verifica con l'organizzatore.</div>
+    </div>
+
+    <div id="phase2" style="display:none">
+      <button type="button" class="back-link" id="btn-back">← Cambia codice</button>
+      <div class="game-code-badge">
+        <div>
+          <div class="gc-label">Sessione attiva</div>
+          <div class="gc-val" id="gc-display">—</div>
+        </div>
+      </div>
+      <div class="login-title">Credenziali</div>
+      <div class="login-sub">Inserisci <strong>username</strong> e <strong>password</strong> forniti dall'organizzatore.</div>
+      <div class="form-group">
+        <label class="form-label" for="username-input">Username</label>
+        <input class="form-input" id="username-input" type="text" placeholder="es. squadra_alpha" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password-input">Password</label>
+        <input class="form-input" id="password-input" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button type="button" class="btn-login" id="btn-phase2">Accedi al gioco</button>
+      <div class="error-msg" role="alert" id="err2">Credenziali non valide. Verifica con l'organizzatore e riprova dall'inizio.</div>
+    </div>
+
+    <div class="login-footer">
+      
+      In caso di problemi contatta l'organizzatore
+    </div>
+  </div>
+</div>
+
+<div id="view-lobby" class="view">
+  <div class="lobby-shell">
+    <div class="lobby-container">
+      <div class="lobby-header">
+        <div class="lobby-session-name">Sessione di gioco</div>
+        <div class="lobby-title" id="lobby-title-main">—</div>
+        <div style="margin-top:10px">
+          <span class="lobby-mode-badge" id="lobby-mode-badge">—</span>
+        </div>
+      </div>
+
+      <div class="lobby-info-row">
+        <div class="lobby-info-card">
+          <div class="lobby-info-label">Sfide totali</div>
+          <div class="lobby-info-val" id="lobby-chal">0</div>
+        </div>
+        <div class="lobby-info-card">
+          <div class="lobby-info-label">Durata partita</div>
+          <div class="lobby-info-val orange" id="lobby-dur">—</div>
+        </div>
+        <div class="lobby-info-card">
+          <div class="lobby-info-label">Squadre</div>
+          <div class="lobby-info-val" id="lobby-teams">0</div>
+        </div>
+      </div>
+
+      <div class="lobby-status-card">
+        <div class="lobby-status-header">
+          <div class="lobby-status-label">Giocatori connessi</div>
+          <div class="lobby-waiting-badge"><div class="pulse"></div> In attesa...</div>
+        </div>
+        <div class="players-grid" id="players-list"></div>
+        <div class="lobby-progress" style="margin-top:20px">
+          <div class="lobby-progress-bar">
+            <div class="lobby-progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+          <div class="lobby-progress-label" id="progress-label">0 / 0 connessi</div>
+        </div>
+      </div>
+
+      <div class="lobby-waiting-msg">
+        Attendi in questa schermata.<br>
+        L'organizzatore avvierà manualmente la sessione.
+      </div>
+    </div>
+  </div>
+
+  <aside class="lobby-nemesis-side" aria-label="Nemesis lobby widget">
+    <div class="nemesis-widget">
+      <div class="nem-label">◈ NEMESIS // INTEGRITÀ</div>
+      <div id="nem-mode-tag"></div>
+      <div class="nem-canvas-wrap">
+        <canvas id="nem-canvas-small" width="120" height="120"></canvas>
+      </div>
+      <div class="nem-bar-wrap">
+        <div class="nem-bar-track"><div class="nem-bar-fill" id="nem-bar-small"></div></div>
+      </div>
+      <div class="nem-integrity" id="nem-integrity-small">—</div>
+      <div class="nem-state-label" id="nem-state-small">—</div>
+      <div class="nem-msg hidden" id="nem-msg-small"></div>
+    </div>
+  </aside>
+</div>
+
+<div id="view-admin" class="view">
+  <div class="admin-card">
+    <h2>Accesso amministratore</h2>
+    <p>Hai effettuato l'accesso con le credenziali admin. La dashboard di gestione sarà disponibile qui.</p>
+    <p style="font-family:var(--mono);font-size:11px;color:var(--muted2);">JWT impostato in cookie httpOnly — scadenza inattività come da configurazione server.</p>
+  </div>
+</div>
+
+<div id="view-completed" class="view" style="align-items:center;justify-content:center;padding:40px 20px;">
+  <div class="completed-card">
+    <div class="completed-icon">✓</div>
+    <div class="completed-title">Missione Completata</div>
+    <div class="completed-sub">
+      Hai già completato <strong>tutte le sfide</strong> di questa sessione.<br>
+      Il tuo contributo è stato registrato.
+    </div>
+    <a class="btn-end-page" href="/end.html">Visualizza schermata finale →</a>
+  </div>
+</div>
+
+<div id="view-lost" class="view" style="align-items:center;justify-content:center;padding:40px 20px;">
+  <div class="completed-card" style="border-color:rgba(231,76,60,.35);background:rgba(80,10,10,.25);">
+    <div class="completed-icon" style="background:rgba(231,76,60,.15);color:#e74c3c;border-color:rgba(231,76,60,.35);">✗</div>
+    <div class="completed-title" style="color:#e74c3c;">Tempo Scaduto</div>
+    <div class="completed-sub">
+      Il tempo a tua disposizione è terminato.<br>
+      Grazie per aver partecipato.
+    </div>
+    <a class="btn-end-page" href="/lost.html" style="background:rgba(231,76,60,.15);border-color:rgba(231,76,60,.4);color:#e74c3c;">Visualizza schermata finale →</a>
+  </div>
+</div>
+
+<script src="/Nemesis/nemesis-preset.js"></script>
+<script src="/Nemesis/orb.js"></script><script src="/Nemesis/nemesis.js"></script>
+<script>
+const API = '';
+
+let verifiedCode = '';
+let lobbyPoll = null;
+let _lobbyNemesisReady = false;
+
+function showView(name) {
+  document.querySelectorAll('.view').forEach((el) => el.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+}
+
+function modeLabel(mode) {
+  if (mode === 'competitive') return '◈ Modalità Competitiva';
+  return '◈ Modalità Co-op';
+}
+
+function renderLobby(lobby) {
+  const s = lobby.session;
+  const titleEl = document.getElementById('lobby-title-main');
+  const rawName = String(s.name || 'NEMESIS CTF').trim();
+  titleEl.innerHTML = escapeHtml(rawName).replace(/\n/g, '<br>');
+  document.getElementById('lobby-mode-badge').textContent = modeLabel(s.mode);
+  document.getElementById('lobby-chal').textContent = s.challenge_count ?? 0;
+  document.getElementById('lobby-dur').textContent = (s.duration_mins ?? 90) + ' min';
+  const players = lobby.players || [];
+  document.getElementById('lobby-teams').textContent = players.length;
+  const connected = players.filter((p) => p.connected).length;
+  const pct = players.length ? (connected / players.length) * 100 : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent =
+    connected + ' / ' + players.length + ' connessi';
+  document.getElementById('players-list').innerHTML = players
+    .map(
+      (p) => `
+    <div class="player-row ${p.connected ? 'connected' : 'waiting'}">
+      <div class="player-color" style="background:${p.color || '#d86e33'}"></div>
+      <div class="player-name">${escapeHtml(p.team_name)}</div>
+      <div class="player-status ${p.connected ? 'online' : 'offline'}">${p.connected ? 'Online' : 'Attesa'}</div>
+    </div>`
+    )
+    .join('');
+  syncLobbyNemesis(lobby);
+}
+
+function syncLobbyNemesis(lobby) {
+  if (!lobby || !window.NEMESIS || typeof updateNemesisUI !== 'function') return;
+  if (!_lobbyNemesisReady) {
+    window.NEMESIS.configureView({ role: 'player', audioEnabled: false });
+    if (typeof initOrbs === 'function') initOrbs();
+    _lobbyNemesisReady = true;
+  }
+  const players = Array.isArray(lobby.players) ? lobby.players : [];
+  const scoreboard = players.map((p) => ({
+    team_name: p.team_name || 'Squadra',
+    score: Number(p.score || 0),
+    challenges_solved: Number(p.challenges_solved || 0),
+  }));
+  const challengeCount = Number(lobby.session?.challenge_count || 0);
+  const challenges = Array.from({ length: challengeCount }, (_, i) => ({
+    code: `CH-${String(i + 1).padStart(2, '0')}`,
+    is_solved: false,
+  }));
+  const snapshot = {
+    sessionName: lobby.session?.name || 'NEMESIS CTF',
+    sessionStatus: lobby.session?.status || 'pending',
+    sessionMode: lobby.session?.mode || 'coop',
+    scoreboard,
+    challenges,
+    total_solved: Number(scoreboard.reduce((acc, row) => acc + Number(row.challenges_solved || 0), 0)),
+    total_challenges: challengeCount,
+  };
+  const nem = lobby.nemesis || {};
+  updateNemesisUI(
+    {
+      integrity_pct: Math.max(0, Math.min(100, Number(nem.integrity_pct ?? 100))),
+      emotional_state: nem.emotional_state || 'dominant',
+      last_message: null,
+    },
+    snapshot.sessionMode,
+    snapshot
+  );
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function submitPhase1() {
+  const inp = document.getElementById('game-code-input');
+  const err = document.getElementById('err1');
+  const btn = document.getElementById('btn-phase1');
+  const code = inp.value.trim().toUpperCase();
+  err.classList.remove('show');
+  inp.classList.remove('error');
+  if (!code) {
+    inp.classList.add('error');
+    err.textContent = 'Inserisci un codice sessione.';
+    err.classList.add('show');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Verifica…';
+  try {
+    const res = await fetch(API + '/api/auth/verify-session-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      inp.classList.add('error');
+      err.textContent = 'Codice sessione non valido. Verifica con l\'organizzatore.';
+      err.classList.add('show');
+      return;
+    }
+    verifiedCode = code;
+    document.getElementById('gc-display').textContent = code;
+    document.getElementById('phase1').style.display = 'none';
+    document.getElementById('phase2').style.display = 'block';
+    document.getElementById('dot1').className = 'step-dot done';
+    document.getElementById('dot1').textContent = '✓';
+    document.getElementById('dot2').className = 'step-dot active';
+    document.getElementById('step-label').textContent = 'Fase 2 — Credenziali';
+  } catch {
+    inp.classList.add('error');
+    err.textContent = 'Errore di rete. Avvia il server locale (vedi backend) e riprova.';
+    err.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Continua →';
+  }
+}
+
+function backToPhase1() {
+  verifiedCode = '';
+  document.getElementById('phase1').style.display = 'block';
+  document.getElementById('phase2').style.display = 'none';
+  document.getElementById('dot1').className = 'step-dot active';
+  document.getElementById('dot1').textContent = '1';
+  document.getElementById('dot2').className = 'step-dot';
+  document.getElementById('step-label').textContent = 'Fase 1 — Codice sessione';
+  document.getElementById('err2').classList.remove('show');
+  document.getElementById('username-input').classList.remove('error');
+  document.getElementById('password-input').classList.remove('error');
+  document.getElementById('username-input').value = '';
+  document.getElementById('password-input').value = '';
+}
+
+async function submitPhase2() {
+  const uIn = document.getElementById('username-input');
+  const pIn = document.getElementById('password-input');
+  const err = document.getElementById('err2');
+  const btn = document.getElementById('btn-phase2');
+  const username = uIn.value.trim();
+  const password = pIn.value;
+  err.classList.remove('show');
+  uIn.classList.remove('error');
+  pIn.classList.remove('error');
+
+  btn.disabled = true;
+  btn.textContent = 'Accesso…';
+  try {
+    const res = await fetch(API + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ code: verifiedCode, username, password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      uIn.classList.add('error');
+      pIn.classList.add('error');
+      if (data.error === 'NOT_ASSIGNED') {
+        err.textContent = 'Non sei assegnato a questa sessione. Contatta l\'organizzatore.';
+      } else {
+        err.textContent =
+          'Credenziali non valide o sessione non valida. Riproverai dall\'inizio tra pochi secondi.';
+      }
+      err.classList.add('show');
+      setTimeout(() => {
+        backToPhase1();
+        err.classList.remove('show');
+      }, 2000);
+      return;
+    }
+    if (data.role === 'admin') {
+      window.location.href = '/admin_dashboard.html';
+      return;
+    }
+    if (data.role === 'referente') {
+      window.location.href = '/referents.html';
+      return;
+    }
+    if (data.completed) {
+      showView('completed');
+      return;
+    }
+    if (data.lost) {
+      showView('lost');
+      return;
+    }
+    if (data.lobby) {
+      renderLobby(data.lobby);
+      showView('lobby');
+      startLobbyPoll();
+    }
+  } catch {
+    uIn.classList.add('error');
+    pIn.classList.add('error');
+    err.textContent = 'Errore di rete. Controlla il server e riprova.';
+    err.classList.add('show');
+    setTimeout(() => {
+      backToPhase1();
+      err.classList.remove('show');
+    }, 2000);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Accedi al gioco';
+  }
+}
+
+function startLobbyPoll() {
+  if (lobbyPoll) clearInterval(lobbyPoll);
+  lobbyPoll = setInterval(async () => {
+    try {
+      const res = await fetch(API + '/api/lobby/state', { credentials: 'include' });
+      const data = await res.json();
+      if (!res.ok || !data.ok) return;
+      if (data.lobby) renderLobby(data.lobby);
+        if (data.completed) {
+        clearInterval(lobbyPoll);
+        showView('completed');
+        return;
+      }
+      if (data.lost) {
+        clearInterval(lobbyPoll);
+        showView('lost');
+        return;
+      }
+      if (data.lobby?.session?.status === 'active') {
+        clearInterval(lobbyPoll);
+        window.location.href = '/sfide.html';
+      }
+    } catch { /* ignore */ }
+  }, 4000);
+}
+
+// Show completed modal immediately if redirected here from game/sfide
+if (window.location.hash === '#completed') {
+  showView('completed');
+  history.replaceState(null, '', window.location.pathname);
+}
+if (window.location.hash === '#lost') {
+  showView('lost');
+  history.replaceState(null, '', window.location.pathname);
+}
+
+document.getElementById('btn-phase1').addEventListener('click', submitPhase1);
+document.getElementById('btn-phase2').addEventListener('click', submitPhase2);
+document.getElementById('btn-back').addEventListener('click', backToPhase1);
+document.getElementById('game-code-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitPhase1();
+});
+document.getElementById('username-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitPhase2();
+});
+document.getElementById('password-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitPhase2();
+});
+</script>
+<script>
+    const inviteCode = new URLSearchParams(location.search).get('sessione');
+    if (inviteCode) document.getElementById('game-code-input').value=inviteCode.slice(0,32);
+    const coverOrb = new NemesisOrb(document.getElementById('login-orb'));
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) coverOrb._dead=true;
+    const cover = document.querySelector('#view-login');
+    new MutationObserver(()=>{coverOrb._dead=!cover.classList.contains('active') || matchMedia('(prefers-reduced-motion: reduce)').matches;}).observe(cover,{attributes:true,attributeFilter:['class']});
+  </script></body>
+</html>
