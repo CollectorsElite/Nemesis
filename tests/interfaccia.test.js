@@ -22,11 +22,11 @@ test('Pagine, JavaScript e risorse locali',()=>{
    }
  }
 });
-test('32 flag e allegati del catalogo',()=>{
+test('62 flag e allegati del catalogo',()=>{
  const guide=fs.readFileSync(path.join(root,'docs/Soluzioni-staff.md'),'utf8');
  const flags=new Map([...guide.matchAll(/\| ([A-Z]+-\d\d) \| `(FLAG\[[^\]]+\])`/g)].map(m=>[m[1],m[2]]));
  const catalog=JSON.parse(fs.readFileSync(path.join(root,'db/catalogo.json')));
- assert.equal(flags.size,32);assert.equal(catalog.length,32);
+ assert.equal(flags.size,62);assert.equal(catalog.length,62);
  for(const ch of catalog){
    assert.equal(createHash('sha256').update(flags.get(ch.code)).digest('hex'),ch.flag_hash,ch.code);
    if(ch.attachment_path) assert(fs.statSync(path.join(root,'docs/allegati',ch.attachment_path)).size>0,ch.code);

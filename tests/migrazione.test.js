@@ -20,7 +20,7 @@ test('Importazione dello storico con ID originali, rollback e protezione dalla s
   const db=new DatabaseSync(path.join(dst,'escalation-ctf.sqlite'),{readOnly:true});
   assert.equal(db.prepare('SELECT score FROM session_players WHERE id=504').get().score,8);
   assert.equal(db.prepare('SELECT code FROM challenges WHERE id=91').get().code,code.code);
-  assert.equal(db.prepare('SELECT count(*) AS n FROM challenges').get().n,32);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM challenges').get().n,62);
   assert.equal(db.prepare('SELECT user_id FROM team_solutions WHERE id=914').get().user_id,14);
   db.close();const bytes=fs.readFileSync(path.join(dst,'escalation-ctf.sqlite'));assert.notEqual(run().status,0);
   assert.deepEqual(fs.readFileSync(path.join(dst,'escalation-ctf.sqlite')),bytes);

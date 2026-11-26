@@ -42,7 +42,7 @@ test('Due modalità, ruoli, punteggi, allegati, transazioni e riavvio', async t=
     assert.equal((await api('auth/verify-session-code',{method:'POST',body:{code:'staff'}})).data.flow,'admin');
     admin=await login('staff','admin');
     challenges=(await adminReq('challenges')).challenges;
-    assert.equal(challenges.length,32);assert.equal(new Set(challenges.map(c=>c.category)).size,9);
+    assert.equal(challenges.length,62);assert.equal(new Set(challenges.map(c=>c.category)).size,9);
     for(const c of challenges)codes[c.code]=c.id;
     for(const [username,role] of [['prima','player'],['seconda','player'],['docente','referente']]){
       teams.push((await adminReq('users','POST',{team_name:username,username,password:secret,role},201)).user.id);

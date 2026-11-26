@@ -1,6 +1,16 @@
 # Escalation CTF · Operazione NEMESIS
 
-Modulo della Suite Escalation per eventi Capture the Flag in aula. La regia organizza le sessioni, le squadre risolvono le sfide e il referente segue la partita e scarica il report. L’applicazione comprende il catalogo di 32 sfide, 23 allegati, il motore NEMESIS e la guida riservata allo staff.
+Modulo della Suite Escalation per eventi Capture the Flag in aula. La regia organizza le sessioni, le squadre risolvono le sfide e il referente segue la partita e scarica il report. L’applicazione comprende il catalogo di 62 sfide, 53 allegati, il motore NEMESIS e la guida riservata allo staff.
+
+## Revisione didattica 1.2
+
+Le dieci medie della serie 1.1 passano a livello facile mantenendo i punti originari. Dieci nuovi fascicoli di livello intermedio richiedono ricostruzioni e verifiche incrociate. Il nuovo catalogo viene applicato automaticamente al volume esistente. Per selezionare le nuove sfide crea una sessione.
+
+## Espansione 1.1
+
+Il catalogo aggiunge 10 sfide medie da 7 punti e 10 difficili da 10 punti. Ognuna comprende un fascicolo scaricabile e tre indizi progressivi. I materiali sono autonomi e utilizzabili offline dopo il download. I percorsi di soluzione si trovano nella guida riservata allo staff.
+
+Per aggiornare il servizio già pubblicato, mantieni il volume esistente e distribuisci questa versione. Al primo avvio vengono aggiunti i nuovi codici disponibili. Le sessioni già create conservano la selezione originaria. Apri una nuova sessione dalla regia per includere le nuove sfide.
 
 ## 1. Pubblicazione su Railway
 
